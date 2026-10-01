@@ -248,7 +248,7 @@ workflow VIRA {
     //  More viruses to be added later
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
     ch_pangolin_report = channel.empty()
-    if ( params.virus_name == 'covid' ) {
+    if ( params.virus == 'covid' ) {
         WF_VIRUS_COVID(
             ch_consensus
         )
@@ -310,9 +310,10 @@ workflow VIRA {
         FINAL_QC_CSV(
             MAKE_SAMPLE_QC_CSV.out.csv
                 .map{ _meta, csv -> csv }
-                .collectFile(keepHeader: true, skip: 1, name: 'concat.qc.csv'),
+                .collectFile(keepHeader: true, skip: 1, name: 'concat.qc.csv')
+                .ifEmpty([]),
             ch_filter_tracking
-                .collectFile(keepHeader: true, skip: 1, name: 'filter_tracking.csv')
+                .collectFile(keepHeader: true, skip: 1, name: 'filtered_samples.csv')
                 .ifEmpty([]),
             ch_metadata,
             ch_reference,
