@@ -13,6 +13,9 @@ The goals of this pipeline are:
 3. Allow the pipeline to be used on other viruses with or without amplicon schemes
 4. Support downstream analysis by adopting virus specific processes based on feedback
 
+Initial Simplified Workflow Diagram
+![vira initial workflow diagram](./docs/vira-initial-workflow.svg)
+
 ## Index
 
 - [VIRA](#vira)

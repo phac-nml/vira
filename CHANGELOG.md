@@ -9,17 +9,17 @@ Large update... to finish draft once ready
 
 ### `Added`
 
-- `download_models.py` python script to only download one model per run if the model is not local [PR 10](https://github.com/phac-nml/viralassembly/pull/10)
+- `download_models.py` python script to only download one model per run if the model is not local [PR 10](https://github.com/phac-nml/vira/pull/10)
 
 ### `Removed`
 
-- Artic `download_model` process (in favour of custom one) [PR 10](https://github.com/phac-nml/viralassembly/pull/10)
+- Artic `download_model` process (in favour of custom one) [PR 10](https://github.com/phac-nml/vira/pull/10)
   - To save time and not download all the models every time
 
 ### `Changed`
 
-- Expanded container definitions that were missing [PR 10](https://github.com/phac-nml/viralassembly/pull/10)
-- `clair3_model` schema changed from a specific pattern to a list of allowed models [PR 10](https://github.com/phac-nml/viralassembly/pull/10)
+- Expanded container definitions that were missing [PR 10](https://github.com/phac-nml/vira/pull/10)
+- `clair3_model` schema changed from a specific pattern to a list of allowed models [PR 10](https://github.com/phac-nml/vira/pull/10)
 
 ## [1.2.0-dev] - Unreleased
 
@@ -29,20 +29,20 @@ Parameters have been added and adjusted so that is something to be aware of. Thi
 
 ### `Added`
 
-- Clair3 specific variant calling parameters [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
+- Clair3 specific variant calling parameters [PR 6](https://github.com/phac-nml/vira/pull/6)
   - `--min_qual_clair3`
   - `--min_frameshift_qual`
   - `--min_allele_freq`
-- Generic variant calling parameters added [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
+- Generic variant calling parameters added [PR 6](https://github.com/phac-nml/vira/pull/6)
   - `--min_depth`
-- Primer bed parameter added to run primer schemes [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
+- Primer bed parameter added to run primer schemes [PR 6](https://github.com/phac-nml/vira/pull/6)
   - `--primer_bed`
-- Basic nf-tests added [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
-- `nf-iridanext` plugin and config added [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
+- Basic nf-tests added [PR 6](https://github.com/phac-nml/vira/pull/6)
+- `nf-iridanext` plugin and config added [PR 6](https://github.com/phac-nml/vira/pull/6)
 
 ### `Removed`
 
-- Specifics relating to amplicon primer-scheme repos and formatting to just require a bed and reference file [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
+- Specifics relating to amplicon primer-scheme repos and formatting to just require a bed and reference file [PR 6](https://github.com/phac-nml/vira/pull/6)
   - This includes the following parameters:
     - `--scheme`
     - `--scheme_version`
@@ -51,21 +51,21 @@ Parameters have been added and adjusted so that is something to be aware of. Thi
   - Along with the workflows and processes associated with downloading and checking:
     - `DOWNLOAD_SCHEME`
     - `SIMPLE_SCHEME_VALIDATE`
-- Removed the `CAT_FASTQ` module and process when creating the sample channel with the input list [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
+- Removed the `CAT_FASTQ` module and process when creating the sample channel with the input list [PR 6](https://github.com/phac-nml/vira/pull/6)
   - Change made just as how it is being done needs to be reevaluated
-- Resource `check_max` function removed from configs [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
+- Resource `check_max` function removed from configs [PR 6](https://github.com/phac-nml/vira/pull/6)
   - Using the nextflow process resource limits instead
-- `lib` folder and older nf-core groovy scripts and java jar deps [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
-- `defaults` from conda env definition yaml channels [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
+- `lib` folder and older nf-core groovy scripts and java jar deps [PR 6](https://github.com/phac-nml/vira/pull/6)
+- `defaults` from conda env definition yaml channels [PR 6](https://github.com/phac-nml/vira/pull/6)
 
 ### `Changed`
 
-- Minimum nextflow version bumped to `24.10.0` [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
-- `nf-validation` replaces `nf-schema` [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
-- The `lib/` folder has been replaced by `nf-validation` along with the nf-core utils subworkflows along with the local initialization subworkflow [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
-- `--variant_caller` defaults to 'clair3' and isn't required to be set [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
-- `--clair3_model` defaults to 'r1041_e82_400bps_sup_v420' now [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
-- `--neg_ctrl_substrings` defaults to 'neg,ntc,blank,water' now (added in ',water') [PR 6](https://github.com/phac-nml/viralassembly/pull/6)
+- Minimum nextflow version bumped to `24.10.0` [PR 6](https://github.com/phac-nml/vira/pull/6)
+- `nf-validation` replaces `nf-schema` [PR 6](https://github.com/phac-nml/vira/pull/6)
+- The `lib/` folder has been replaced by `nf-validation` along with the nf-core utils subworkflows along with the local initialization subworkflow [PR 6](https://github.com/phac-nml/vira/pull/6)
+- `--variant_caller` defaults to 'clair3' and isn't required to be set [PR 6](https://github.com/phac-nml/vira/pull/6)
+- `--clair3_model` defaults to 'r1041_e82_400bps_sup_v420' now [PR 6](https://github.com/phac-nml/vira/pull/6)
+- `--neg_ctrl_substrings` defaults to 'neg,ntc,blank,water' now (added in ',water') [PR 6](https://github.com/phac-nml/vira/pull/6)
 
 ### `ToDo`
 
@@ -93,7 +93,7 @@ Parameters have been added and adjusted so that is something to be aware of. Thi
 
 ## [1.0.0] - 2024-03-22
 
-Initial release of `phac-nml/viralassembly`, created from combining the [nf-core](https://nf-co.re/) template with the artic steps.
+Initial release of `phac-nml/vira`, created from combining the [nf-core](https://nf-co.re/) template with the artic steps.
 
 ### `Added`
 
@@ -101,5 +101,5 @@ Initial release of `phac-nml/viralassembly`, created from combining the [nf-core
 - All initial docs and images
 
 [2.0.0]: https://github.com/phac-nml/measeq/releases/tag/2.0.0
-[1.2.0-dev]: https://github.com/phac-nml/viralassembly/commit/c23323caa4e6b91ced016217e89a399d94c245ec
+[1.2.0-dev]: https://github.com/phac-nml/vira/commit/c23323caa4e6b91ced016217e89a399d94c245ec
 [1.0.0]: https://github.com/phac-nml/measeq/releases/tag/1.0.0
