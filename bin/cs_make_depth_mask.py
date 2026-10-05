@@ -56,7 +56,8 @@ def collect_depths(bamfile: str, ref_name: str, min_depth: int, ignore_deletions
         truncate=False,
         min_base_quality=0,
     ):
-        # Not sure why I want a buffer but it seems like maybe a good idea for exiting the loop early
+        # Buffer because different tools depth calculations can be hard to match up so just
+        #  leaving a bit of extra confirmation before exiting the position early
         extra_threshold_depth = int(min_depth * 1.5)
 
         # process the pileup column
@@ -76,7 +77,7 @@ def collect_depths(bamfile: str, ref_name: str, min_depth: int, ignore_deletions
             else:
                 raise Exception("unhandled pileup read encountered")
 
-            # We really don't need to go past the minimum depth
+            # We really don't need to go too far past the minimum depth to confirm the site has reads
             if depths[pileupcolumn.pos] > extra_threshold_depth:
                 break
 
