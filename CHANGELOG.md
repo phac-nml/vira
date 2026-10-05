@@ -3,23 +3,28 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2026-xx-xx
+## [2.0.0] - 2026-10-07
 
-Large update... to finish draft once ready
+Major update! ViralAssembly is now VIRA! This release substantially restructures the pipeline, adds support for Illumina sequencing, updates variant and minor-variant analysis workflows, add virus-specific downstream analysis, and improves quality control and reporting. The entries below are top-level summaries of the changes made. For detailed instructions, please review the pipeline's [documents directory](./docs/) for in-depth information on [running the pipeline](./docs/usage.md) and [the expected outputs](./docs/output.md).
 
 ### `Added`
 
-- `download_models.py` python script to only download one model per run if the model is not local [PR 10](https://github.com/phac-nml/vira/pull/10)
+- Addition of an Illumina consensus generation workflow [(PR #18)](https://github.com/phac-nml/vira/pull/18).
+- Addition of a minor variant calling workflow for Nanopore sequencing data [(PR #14)](https://github.com/phac-nml/vira/pull/14).
+- Addition of a Nextclade workflow for mutation detection [(PR #13)](https://github.com/phac-nml/vira/pull/13), [(PR #19)](https://github.com/phac-nml/vira/pull/19).
+- Addition of virus specific workflow support [(PR #13)](https://github.com/phac-nml/vira/pull/13).
+  - Currently, only includes Pangolin for SARS-CoV-2. More processes to be added in the future
 
 ### `Removed`
 
-- Artic `download_model` process (in favour of custom one) [PR 10](https://github.com/phac-nml/vira/pull/10)
-  - To save time and not download all the models every time
+- Deprecation of Medaka and Nanopolish as variant callers for Nanopore sequencing data [(PR #20)](https://github.com/phac-nml/vira/pull/20).
+- Removal of MultiQC reporting [(PR #21)](https://github.com/phac-nml/vira/pull/21).
 
 ### `Changed`
 
-- Expanded container definitions that were missing [PR 10](https://github.com/phac-nml/vira/pull/10)
-- `clair3_model` schema changed from a specific pattern to a list of allowed models [PR 10](https://github.com/phac-nml/vira/pull/10)
+- Restructuring of the Nanopore generation workflow with modifications to specific processes such as model handling [(PR #10)](https://github.com/phac-nml/vira/pull/10), primer scheme handling [(PR #12)](https://github.com/phac-nml/vira/pull/12), and parameter adjustments [(PR #16)](https://github.com/phac-nml/vira/pull/16), and variant calling [(PR #20)](https://github.com/phac-nml/vira/pull/20).
+- Final reporting changes to use custom RMarkdown for HTML report generation both for the full run and individual samples [(PR #21)](https://github.com/phac-nml/vira/pull/21).
+- Various other version updates, parameter adjustments, and channel handling was implemented.
 
 ## [1.2.0-dev] - Unreleased
 
@@ -100,6 +105,6 @@ Initial release of `phac-nml/vira`, created from combining the [nf-core](https:/
 - All initial pipeline features and logic
 - All initial docs and images
 
-[2.0.0]: https://github.com/phac-nml/measeq/releases/tag/2.0.0
+[2.0.0]: https://github.com/phac-nml/vira/releases/tag/2.0.0
 [1.2.0-dev]: https://github.com/phac-nml/vira/commit/c23323caa4e6b91ced016217e89a399d94c245ec
-[1.0.0]: https://github.com/phac-nml/measeq/releases/tag/1.0.0
+[1.0.0]: https://github.com/phac-nml/vira/releases/tag/1.0.0
