@@ -56,6 +56,9 @@ def collect_depths(bamfile: str, ref_name: str, min_depth: int, ignore_deletions
         truncate=False,
         min_base_quality=0,
     ):
+        # Not sure why I want a buffer but it seems like maybe a good idea for exiting the loop early
+        extra_threshold_depth = int(min_depth * 1.5)
+
         # process the pileup column
         for pileupread in pileupcolumn.pileups:
 
@@ -72,6 +75,10 @@ def collect_depths(bamfile: str, ref_name: str, min_depth: int, ignore_deletions
 
             else:
                 raise Exception("unhandled pileup read encountered")
+
+            # We really don't need to go past the minimum depth
+            if depths[pileupcolumn.pos] > extra_threshold_depth:
+                break
 
         # if final depth for pileup column < min_depth, report 0 and update the mask_vector
         if depths[pileupcolumn.pos] < min_depth:
