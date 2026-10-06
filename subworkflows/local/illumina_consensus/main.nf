@@ -118,7 +118,7 @@ workflow WF_ILLUMINA_CONSENSUS {
         ch_versions = ch_versions.mix(ARTIC_ALIGN_TRIM.out.versions)
     }
 
-    if (params.use_ivar) {
+    if ( params.use_ivar ) {
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
         // Variant Calling & Handling - iVar
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
