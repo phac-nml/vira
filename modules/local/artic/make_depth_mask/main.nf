@@ -1,5 +1,5 @@
 process ARTIC_MAKE_DEPTH_MASK{
-    label 'process_medium'
+    label 'process_single'
     tag "$meta.id"
 
     conda "${moduleDir}/environment.yml"
@@ -46,7 +46,7 @@ process ARTIC_MAKE_DEPTH_MASK{
 // Slow but the bedtools adaptation I was working on I couldn't quite get to be genomic index
 //  Will have to look at that more as it was a lot quicker
 process CUSTOM_MAKE_DEPTH_MASK {
-    label 'process_medium'
+    label 'process_single'
     tag "${meta.id}"
 
     conda "${moduleDir}/environment.yml"

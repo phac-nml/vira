@@ -1,7 +1,7 @@
 // Visualization Modules
 //  Custom scripts are versioned here
 process CREATE_READ_VARIATION_CSV {
-    label 'process_medium'
+    label 'process_low'
     tag "$meta.id"
 
     conda "${moduleDir}/env-artic.yml"
