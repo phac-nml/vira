@@ -5,15 +5,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0] - 2026-10-07
 
-Major update! ViralAssembly is now VIRA! This release substantially restructures the pipeline, adds support for Illumina sequencing, updates variant and minor-variant analysis workflows, add virus-specific downstream analysis, and improves quality control and reporting. The entries below are top-level summaries of the changes made. For detailed instructions, please review the pipeline's [documents directory](./docs/) for in-depth information on [running the pipeline](./docs/usage.md) and [the expected outputs](./docs/output.md).
+A complete restructuring of the entire pipeline including a name change from `ViralAssembly` to `VIRA` to mark the release! This major update includes a complete overhaul of the pipeline workflow, adds support for Illumina sequencing, updates variant and minor-variant analysis workflows, adds virus-specific downstream analyses (with more to come), and improves quality control and reporting outputs. Top-level summaries of changes are shown below in the CHANGELOG. Please review the pipeline's [documents directory](./docs/) for in-depth information on [running the pipeline](./docs/usage.md) and [the expected outputs](./docs/output.md) as there have been a large number of changes. [Example commands](./docs/example_commands.md) are also available to get started with.
 
 ### `Added`
 
 - Addition of an Illumina consensus generation workflow [(PR #18)](https://github.com/phac-nml/vira/pull/18).
-- Addition of a minor variant calling workflow for Nanopore sequencing data [(PR #14)](https://github.com/phac-nml/vira/pull/14).
-- Addition of a Nextclade workflow for mutation detection [(PR #13)](https://github.com/phac-nml/vira/pull/13), [(PR #19)](https://github.com/phac-nml/vira/pull/19).
+  - Includes two variant caller options in `Freebayes` (default) and `iVar`.
+- Addition of an optional minor variant calling workflow for Nanopore sequencing data [(PR #14)](https://github.com/phac-nml/vira/pull/14).
+- Addition of an optional Nextclade workflow including pre-sample dataset prediction [(PR #13)](https://github.com/phac-nml/vira/pull/13), [(PR #19)](https://github.com/phac-nml/vira/pull/19).
 - Addition of virus specific workflow support [(PR #13)](https://github.com/phac-nml/vira/pull/13).
-  - Currently, only includes Pangolin for SARS-CoV-2. More processes to be added in the future
+  - Currently, only includes Pangolin for SARS-CoV-2
+  - More specific workflows to be added later on request or need
 
 ### `Removed`
 
@@ -22,9 +24,14 @@ Major update! ViralAssembly is now VIRA! This release substantially restructures
 
 ### `Changed`
 
-- Restructuring of the Nanopore generation workflow with modifications to specific processes such as model handling [(PR #10)](https://github.com/phac-nml/vira/pull/10), primer scheme handling [(PR #12)](https://github.com/phac-nml/vira/pull/12), and parameter adjustments [(PR #16)](https://github.com/phac-nml/vira/pull/16), and variant calling [(PR #20)](https://github.com/phac-nml/vira/pull/20).
+- Restructuring of the Nanopore consensus generation workflow with modifications to:
+  - Model handling [(PR #10)](https://github.com/phac-nml/vira/pull/10)
+  - Primer scheme handling [(PR #12)](https://github.com/phac-nml/vira/pull/12)
+  - Parameter adjustments and access [(PR #16)](https://github.com/phac-nml/vira/pull/16)
+  - Variant calling [(PR #20)](https://github.com/phac-nml/vira/pull/20).
 - Final reporting changes to use custom RMarkdown for HTML report generation both for the full run and individual samples [(PR #21)](https://github.com/phac-nml/vira/pull/21).
-- Various other version updates, parameter adjustments, and channel handling was implemented.
+- Stability changes for optional snpEFF workflow [(PR #9)](https://github.com/phac-nml/vira/pull/9)
+- Various tool version bumps and default parameter adjustments
 
 ## [1.2.0-dev] - Unreleased
 

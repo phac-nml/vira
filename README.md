@@ -2,18 +2,18 @@
 
 A generic viral assembly and QC pipeline for reference-based analysis of viral sequencing data. The pipeline supports both Oxford Nanopore and Illumina sequencing data and can be used with amplicon or non-amplicon sequencing approaches. This pipeline can be used as a starting point for analyses on viruses without dedicated workflows already available.
 
-For Nanopore sequencing, the pipeline utilises a re-implementation of the [ARTIC pipeline](https://github.com/artic-network/fieldbioinformatics/tree/master/artic) for consensus sequence generation to separate out the individual steps allowing greater control on tool versions along with how data is run through the processes. As of [`v2.0.0`](https://github.com/phac-nml/measeq/releases/tag/2.0.0), Medaka and Nanopolish have been deprecated as variant callers and the pipeline now uses Clair3 for primary variant calling with Nanopore data
+For Nanopore sequencing, the pipeline utilises a re-implementation of the [ARTIC pipeline](https://github.com/artic-network/fieldbioinformatics/tree/master/artic) for consensus sequence generation to separate out the individual steps allowing greater control on tool versions along with how data is run through the processes. As of [`v2.0.0`](https://github.com/phac-nml/measeq/releases/tag/2.0.0), Medaka and Nanopolish have been deprecated as variant callers and the pipeline now uses [`Clair3 v2`](https://github.com/HKU-BAL/clair3) for primary variant calling with Nanopore data
 
-For Illumina sequencing, the pipeline integrates approaches from previous SARS-CoV-2 work and Measles work from the [MeaSeq pipeline](https://github.com/phac-nml/measeq). The current implementation of the pipeline uses FreeBayes as the default variant caller for Illumina data with the option to use iVar instead.
+For Illumina sequencing, the pipeline integrates approaches, defaults, and standards from previous SARS-CoV-2, RSV, Mpox, and Measles work done at the lab with the current implementation of the pipeline useing [`FreeBayes`](https://github.com/freebayes/freebayes) as the default variant caller with the additional option to use iVar instead.
 
 The goals of this pipeline are:
 
 1. Provide a generic viral pipeline for the NML Surviellance Platform IRIDA-Next
 2. Provide detailed and useful `Run` and `Sample` level final reports
-3. Allow the pipeline to be used on other viruses with or without amplicon schemes
-4. Support downstream analysis by adopting virus specific processes based on feedback
+3. Allow the pipeline to be used on viruses with a reference genome across a variety of sequencing approaches
+4. Support downstream analyses by adopting virus specific processes based on requests and feedback with partner labs
 
-Initial Simplified Workflow Diagram
+Initial Simplified Workflow Diagram and potential next implementation steps
 ![vira initial workflow diagram](./docs/vira-initial-workflow.svg)
 
 ## Index
@@ -108,11 +108,18 @@ Outputs include:
 
 ## Limitations
 
-Current limitations include:
+As with any approach, there are limitations to the VIRA workflow which include:
 
-1. Currently runs for viruses using a reference genome
-2. Reporting for segmented viruses is still being evaluated and may be improved in future versions
-3. SnpEff and database building/downloading can be finicky
+1. Viruses require a reference genome to be run
+   - No `de novo` assembly options available
+2. Final reporting for segmented viruses is still being evaluated and will be improved in future versions
+   - Relates to how to create the final QC table and reports
+3. As a generic workflow defaults are set as sensibly as possible but may require adjustments based on the virus
+   - For example, Mpox may require adjusting the Freebayes standard-filters argument to call variants in the ITRs
+
+And then other specific analysis aspects to watch for your specific virus include:
+
+1. SnpEff and database building/downloading which can be finicky
    - Database building/downloading requires one of three things:
      - The reference ID is in the SnpEff database
        - This allows the database to be downloaded
@@ -120,6 +127,10 @@ Current limitations include:
        - This is used with the reference sequence to build a database
      - A well annotated NCBI genome matching the reference ID
        - This will pull the genbank file and use that to build a database
+2. Nextclade automatic dataset selection can select different datasets per sample if multiple datasets exist
+   - Can help better narrow down mutation abnormalities in specific samples
+   - But it may be better to set the wanted dataset if one exists before running
+3. For Nanopore data, the selection of the correct model can make difference in the mutations called so pick the model that best fits the sequencing and basecalling
 
 > [!NOTE]
 > Ensure the suitability of your reference genome, primer scheme, Clair3 model, and nextclade dataset with the sequencing data you hope to analyse.
