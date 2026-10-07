@@ -1,5 +1,5 @@
 process SAMTOOLS_DEPTH {
-    label 'process_single'
+    label 'process_low'
     tag "$meta.id"
 
     conda "${moduleDir}/environment.yml"
@@ -15,11 +15,13 @@ process SAMTOOLS_DEPTH {
     path "versions.yml", emit: versions
 
     script:
+    def args = task.ext.args ?: ''
     """
     echo -e "chrom\tpos\tdepth" \\
         > ${meta.id}.depth.bed
     samtools depth \\
-        -a \\
+        $args \\
+        -aa \\
         $bam \\
         >> ${meta.id}.depth.bed
 

@@ -22,15 +22,15 @@ jobs:
   test:
     name: "Run pipeline with test data (${{ matrix.NXF_VER }} | ${{ matrix.test_name }} | docker)"
     # Only run on push if this is the nf-core dev branch (merged PRs)
-    if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'phac-nml/viralassembly') }}"
+    if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'phac-nml/vira') }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:
         NXF_VER:
           - "24.10.0"
-          - "latest-everything"
+          - "25.10.4"
         test_name:
-          - "workflow_full"
+          - "workflow-full"
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
