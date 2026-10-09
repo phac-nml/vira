@@ -12,7 +12,6 @@ Small update linking in SARS-CoV-2 pangolin results to the final report as an ex
 - Pangolin overall `lineage_report.csv` file is now created and written to `<outdir>/pangolin` [(PR #31)](https://github.com/phac-nml/vira/pull/31)
   - The lineage and assignment database version are also written to the final CSV file
 
-
 ## [2.0.0] - 2026-10-07
 
 A complete restructuring of the entire pipeline including a name change from `ViralAssembly` to `VIRA` to mark the release! This major update includes a complete overhaul of the pipeline workflow, adds support for Illumina sequencing, updates variant and minor-variant analysis workflows, adds virus-specific downstream analyses (with more to come), and improves quality control and reporting outputs. Top-level summaries of changes are shown below in the CHANGELOG. Please review the pipeline's [documents directory](./docs/) for in-depth information on [running the pipeline](./docs/usage.md) and [the expected outputs](./docs/output.md) as there have been a large number of changes. [Example commands](./docs/example_commands.md) are also available to get started with.
