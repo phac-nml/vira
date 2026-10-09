@@ -247,7 +247,7 @@ workflow VIRA {
     // Virus specific tools
     //  More viruses to be added later
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-    ch_pangolin_report = channel.empty()
+    ch_pangolin_report = channel.value([])
     if ( params.virus == 'covid' ) {
         WF_VIRUS_COVID(
             ch_consensus
@@ -302,6 +302,7 @@ workflow VIRA {
             ch_primer_bed,
             ch_metadata,
             ch_pcr_primer_bed,
+            ch_pangolin_report,
             params.skip_nextclade
         )
         ch_versions = ch_versions.mix(MAKE_SAMPLE_QC_CSV.out.versions)

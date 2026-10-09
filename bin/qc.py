@@ -102,6 +102,12 @@ def init_parser() -> argparse.ArgumentParser:
         type=str,
         help='Nextclade CSV file'
     )
+    parser.add_argument(
+        '--pangolin_csv',
+        required=False,
+        type=str,
+        help='Pangolin CSV file to parse lineage from'
+    )
     return parser
 
 
@@ -448,7 +454,7 @@ def count_minor_variants(vcf_file: str, chrom: str) -> Tuple[int, int]:
 
 
 def get_nextclade_vals(nextclade_csv: str) -> Tuple[str, str, str, int]:
-    '''Parse custom nextclade CSV file to find information on potential issue sites
+    '''Parse sample nextclade CSV file to find information on potential issue sites
 
     Parameters:
     -----------
@@ -481,6 +487,34 @@ def get_nextclade_vals(nextclade_csv: str) -> Tuple[str, str, str, int]:
         return frameshifts, stop_codons, mutated_stop_codons, fs_count
     else:
         return '', '', '', 0
+
+
+def parse_pangolin_csv(pango_csv: str, sample: str) -> Tuple[str, str]:
+    """Parse pangolin lineage_report CSV file to find lineage and database information
+
+    Parameters:
+    -----------
+        pango_csv (str): Path to pangolin lineage_report CSV file to parse lineage and version from
+        sample (str): The name of the sample to grab information for
+
+    Returns:
+    --------
+        Tuple[str, str]: The lineage and assignment version
+    """
+    df = pd.read_csv(pango_csv)
+
+    # Want to filter to just the sample we are creating the CSV for
+    validate_df_columns(df, ['taxon'])
+    df[['sample', 'description']] = df['taxon'].str.split(' ', n=1, expand=True)
+    df = df.loc[df['sample'] == sample]
+
+    if not df.empty:
+        lineage = df.iloc[0]['lineage']
+        assignment_version = df.iloc[0]['version']
+        return lineage, assignment_version
+    elif len(df) > 1:
+        raise RuntimeError(f'Sample {sample} exists more than once in the metadata file')
+    return 'No Data', 'No Data'
 
 
 def grade_qc(completeness: float, mean_dep: float, median_dep: float,
@@ -602,6 +636,12 @@ def main() -> None:
                 'num_insertions': var_count_dict['num_insertions'],
                 'num_insertion_sites': var_count_dict['num_insertion_sites']
             }
+
+            # Pangolin is important so have it further up
+            if args.pangolin_csv:
+                lineage, assignment_version = parse_pangolin_csv(args.pangolin_csv, args.sample)
+                sample_data['lineage'] = lineage
+                sample_data['assignment_version'] = assignment_version
 
             # Conditionally add nextclade mutation data
             if args.add_nextclade_columns:
