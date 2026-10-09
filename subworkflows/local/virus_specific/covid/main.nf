@@ -6,8 +6,9 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { PANGOLIN_UPDATEDATA } from '../../../../modules/nf-core/pangolin/updatedata/main'
-include { PANGOLIN_RUN        } from '../../../../modules/nf-core/pangolin/run/main'
+include { PANGOLIN_UPDATEDATA  } from '../../../../modules/nf-core/pangolin/updatedata/main'
+include { PANGOLIN_RUN         } from '../../../../modules/nf-core/pangolin/run/main'
+include { STAGE_FILE_IRIDANEXT } from '../../../../modules/local/custom/utils.nf'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN SUBWORKFLOW
@@ -38,11 +39,16 @@ workflow WF_VIRUS_COVID {
             ch_consensus,
             pango_database
         )
-        ch_pangolin_report = PANGOLIN_RUN.out.report
-        ch_versions        = ch_versions.mix(PANGOLIN_RUN.out.versions.first())
+        ch_versions = ch_versions.mix(PANGOLIN_RUN.out.versions.first())
+
+        STAGE_FILE_IRIDANEXT(PANGOLIN_RUN.out.report
+            .map{ _meta, csv -> csv }
+            .collectFile(name: 'lineage_report.csv', keepHeader: true, skip: 1, cache: false)
+        )
+        ch_pangolin_report = STAGE_FILE_IRIDANEXT.out.collect()
     }
 
     emit:
-    pangolin_report  = ch_pangolin_report            // channel: [ val(meta), [ csv ] ]
+    pangolin_report  = ch_pangolin_report            // channel: [ path(lineage_report.csv) ]
     versions         = ch_versions                   // channel: [ path(versions.yml) ]
 }

@@ -15,6 +15,7 @@ process MAKE_SAMPLE_QC_CSV {
     path primer_bed
     path metadata
     path pcr_primers
+    path pangolin_csv
     val skip_nextclade
 
     output:
@@ -29,6 +30,7 @@ process MAKE_SAMPLE_QC_CSV {
     def minVcfArg = min_vcf ? "--min_vcf $min_vcf" : ""
     def nextcladeColumnsArgs = skip_nextclade ? "" : "--add_nextclade_columns"
     def nextcladeCsvArg = nextclade_csv ? "--nextclade_csv $nextclade_csv" : ""
+    def pangolinArg = pangolin_csv ? "--pangolin_csv $pangolin_csv" : ""
     """
     qc.py \\
         --bam $bam \\
@@ -41,6 +43,7 @@ process MAKE_SAMPLE_QC_CSV {
         $minVcfArg \\
         $nextcladeColumnsArgs \\
         $nextcladeCsvArg \\
+        $pangolinArg \\
         --sample $meta.id \\
         --irida_id $meta.irida_id
 

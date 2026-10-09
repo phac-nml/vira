@@ -254,7 +254,7 @@ nextflow_pipeline {
             assert iridanext.metadata.samples.sample2.total_variants == "54"
             assert iridanext.metadata.samples.sample2.num_deletions == "30"
             assert iridanext.metadata.samples.sample1.pipeline_name == "VIRA"
-            assert iridanext.metadata.samples.sample1.pipeline_version == "2.0.0"
+            assert iridanext.metadata.samples.sample1.pipeline_version == "2.0.1"
         }
     }
 
@@ -262,8 +262,8 @@ nextflow_pipeline {
     test("Nanopore Amplicon Workflow") {
         tag "success"
         tag "amplicon"
-        tag "here"
         tag "nanopore"
+        tag "covid"
 
         when {
             params {
@@ -318,6 +318,9 @@ nextflow_pipeline {
                 "variation_csvs/sample1_variation.csv",
                 "snpeff/sample1.csv",
                 "vcf/report_tsvs/sample1.vcf.tsv",
+
+                // Lineage Report
+                "pangolin/lineage_report.csv",
 
                 // Pipeline Info
                 "pipeline_info",
@@ -387,6 +390,7 @@ nextflow_pipeline {
             def iridanext = path("$launchDir/results/iridanext.output.json").json
             assert iridanext.files.global.any { it.path == "reportDashboard.html" }
             assert iridanext.files.global.any { it.path == "pipeline_info/software_versions.yml" }
+            assert iridanext.files.global.any { it.path == "pangolin/lineage_report.csv" }
             ["reads_100", "sample1", "sample2"].each { sample ->
                 assert iridanext.files.samples[sample].any { it.path == "consensus/${sample}.consensus.fasta" }
                 assert iridanext.files.samples[sample].any { it.path == "vcf/final/${sample}.consensus.norm.vcf.gz" }
@@ -402,8 +406,10 @@ nextflow_pipeline {
             assert iridanext.metadata.samples.sample1.genome_completeness == "0.9097"
             assert iridanext.metadata.samples.sample2.pipeline_name == "VIRA"
             assert iridanext.metadata.samples.sample1.num_deletion_sites == "6"
-            assert iridanext.metadata.samples.sample2.pipeline_version == "2.0.0"
+            assert iridanext.metadata.samples.sample2.pipeline_version == "2.0.1"
             assert iridanext.metadata.samples.sample2.qc_pass == "PASS"
+            assert iridanext.metadata.samples.sample1.lineage == "BA.1.1"
+            assert iridanext.metadata.samples.sample1.assignment_version == "PUSHER-v1.41"
         }
     }
 
@@ -641,7 +647,7 @@ nextflow_pipeline {
             assert iridanext.metadata.samples.sample1.num_snps == "2"
             assert iridanext.metadata.samples.reads_25.total_variants == "0"
             assert iridanext.metadata.samples.sample1.pipeline_name == "VIRA"
-            assert iridanext.metadata.samples.reads_25.pipeline_version == "2.0.0"
+            assert iridanext.metadata.samples.reads_25.pipeline_version == "2.0.1"
         }
     }
 
@@ -649,8 +655,8 @@ nextflow_pipeline {
     test("Illumina Amplicon Workflow with iVar") {
         tag "success"
         tag "amplicon"
-        tag "here"
         tag "illumina"
+        tag "covid"
 
         when {
             params {
@@ -694,6 +700,9 @@ nextflow_pipeline {
                 "variation_csvs/sample1_variation.csv",
                 "snpeff/sample1.csv",
                 "vcf/report_tsvs/sample1.vcf.tsv",
+
+                // Lineage Report
+                "pangolin/lineage_report.csv",
 
                 // Pipeline Info
                 "pipeline_info",
@@ -760,6 +769,7 @@ nextflow_pipeline {
             def iridanext = path("$launchDir/results/iridanext.output.json").json
             assert iridanext.files.global.any { it.path == "reportDashboard.html" }
             assert iridanext.files.global.any { it.path == "pipeline_info/software_versions.yml" }
+            assert iridanext.files.global.any { it.path == "pangolin/lineage_report.csv" }
             ["reads_25", "sample1"].each { sample ->
                 assert iridanext.files.samples[sample].any { it.path == "consensus/${sample}.consensus.fasta" }
                 assert iridanext.files.samples[sample].any { it.path == "vcf/final/${sample}.consensus.filtered.vcf.gz" }
@@ -774,7 +784,9 @@ nextflow_pipeline {
             assert iridanext.metadata.samples.sample1.num_snps == "118"
             assert iridanext.metadata.samples.reads_25.num_consensus_n == "29903"
             assert iridanext.metadata.samples.sample1.pipeline_name == "VIRA"
-            assert iridanext.metadata.samples.reads_25.pipeline_version == "2.0.0"
+            assert iridanext.metadata.samples.reads_25.pipeline_version == "2.0.1"
+            assert iridanext.metadata.samples.sample1.lineage == "RE.2.5"
+            assert iridanext.metadata.samples.sample1.assignment_version == "PUSHER-v1.41"
         }
     }
 
