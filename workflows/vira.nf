@@ -247,7 +247,7 @@ workflow VIRA {
     // Virus specific tools
     //  More viruses to be added later
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-    ch_pangolin_report = channel.empty()
+    ch_pangolin_report = channel.value([])
     if ( params.virus == 'covid' ) {
         WF_VIRUS_COVID(
             ch_consensus
