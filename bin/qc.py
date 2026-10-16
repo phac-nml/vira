@@ -508,12 +508,12 @@ def parse_pangolin_csv(pango_csv: str, sample: str) -> Tuple[str, str]:
     df[['sample', 'description']] = df['taxon'].str.split(' ', n=1, expand=True)
     df = df.loc[df['sample'] == sample]
 
-    if not df.empty:
+    if len(df) > 1:
+        raise RuntimeError(f'Sample {sample} exists more than once in the pango lineage report file')
+    elif not df.empty:
         lineage = df.iloc[0]['lineage']
         assignment_version = df.iloc[0]['version']
         return lineage, assignment_version
-    elif len(df) > 1:
-        raise RuntimeError(f'Sample {sample} exists more than once in the metadata file')
     return 'No Data', 'No Data'
 
 
