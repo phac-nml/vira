@@ -60,21 +60,21 @@ def init_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         '--min_report_percent',
         required=False,
-        type=int,
+        type=float,
         default=15,
         help='Minimum percentage of non-reference bases to report out'
     )
     parser.add_argument(
         '--variant_call_threshold',
         required=False,
-        type=int,
+        type=float,
         default=75,
         help='Minimum percentage for a variant to called'
     )
     parser.add_argument(
         '--indel_call_threshold',
         required=False,
-        type=int,
+        type=float,
         default=60,
         help='Minimum percentage for an indel variant to called'
     )
