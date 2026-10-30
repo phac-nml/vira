@@ -274,7 +274,8 @@ process CREATE_SAMPLE_REPORT {
             output_file='$output_name',
             params=list(
                 min_allele_freq = $min_af,
-                sample_df = '$qc_csv'
+                sample_df = '$qc_csv',
+                platform = '${params.platform}'
             )
         )"
     """

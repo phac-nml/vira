@@ -3,14 +3,22 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.1] - 2026-10-09
+## [2.1.0] - 2026-10-xx
 
-Small update linking in SARS-CoV-2 pangolin results to the final report as an example of virus specific process work
+Small update linking in SARS-CoV-2 pangolin results to the final report as an example of virus specific process work along with adjusting clair3 parameters to use `haploid_sensitive` for better detection of mixed samples
 
 ### `Changed`
 
 - Pangolin overall `lineage_report.csv` file is now created and written to `<outdir>/pangolin` [(PR #31)](https://github.com/phac-nml/vira/pull/31)
   - The lineage and assignment database version are also written to the final CSV file
+- Pangolin lineage written to html reports [(PR #32)](https://github.com/phac-nml/vira/pull/32)
+- Nanopore variant filtering adjustment [(PR #32)](https://github.com/phac-nml/vira/pull/32)
+  - Switched to `haploid_sensitive` from `haploid_precise` in clair3 to better handle mixed sites through the VCF filtering steps
+  - Adjusted the order of variant filtering to prevent low frequency/ low quality variants from being masked as Ns instead of discarded
+    - Evaluate AF first, then variant quality now
+- Illumina variant filtering adjustment [(PR #32)](https://github.com/phac-nml/vira/pull/32)
+  - Set the minimum variant filtering quality to 0 due to mixed sites being reporting as the reference base if the underlying mixture was >50% reference allele which caused the freebayes quality to be below 1 and thus be filtered out
+    - Setting the variant quality back up to the previous default (20) reverts this if you require more stringency for a ambiguous basecalls
 
 ## [2.0.0] - 2026-10-07
 
@@ -121,7 +129,7 @@ Initial release of `phac-nml/vira`, created from combining the [nf-core](https:/
 - All initial pipeline features and logic
 - All initial docs and images
 
-[2.0.1]: https://github.com/phac-nml/vira/releases/tag/2.0.1
+[2.1.0]: https://github.com/phac-nml/vira/releases/tag/2.1.0
 [2.0.0]: https://github.com/phac-nml/vira/releases/tag/2.0.0
 [1.2.0-dev]: https://github.com/phac-nml/vira/commit/c23323caa4e6b91ced016217e89a399d94c245ec
 [1.0.0]: https://github.com/phac-nml/vira/releases/tag/1.0.0
