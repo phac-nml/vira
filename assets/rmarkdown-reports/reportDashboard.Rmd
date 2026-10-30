@@ -202,7 +202,7 @@ Row
 ```{r, data_table, echo=FALSE, error=TRUE}
 # Create an interactive table of all samples with the different qc statuses highlighted
 df <- summary_df %>%
-  select(any_of(c('sample', 'qc_pass', 'mean_sequencing_depth', 'median_sequencing_depth',
+  select(any_of(c('sample', 'qc_pass', 'lineage', 'mean_sequencing_depth', 'median_sequencing_depth',
                   'num_aligned_reads', 'total_variants', 'num_snps', 'num_iupacs',
                   'num_deletions', 'num_deletion_sites', 'num_insertions',
                   'num_insertion_sites', 'genome_completeness')))
@@ -229,6 +229,13 @@ if ("num_iupacs" %in% colnames(df)) {
   df <- df %>%
     rename(
       "# IUPACs" = num_iupacs
+    )
+}
+# Lineage for covid
+if ("lineage" %in% colnames(df)) {
+  df <- df %>%
+    rename(
+      "Lineage" = lineage
     )
 }
 

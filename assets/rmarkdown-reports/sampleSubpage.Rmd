@@ -8,6 +8,7 @@ output:
 params:
     sample_df: NULL
     min_allele_freq: 0.65
+    platform: NULL
 ---
 
 <!-- Style updates mostly to make sure the caption boxes are all matching -->
@@ -120,7 +121,7 @@ valueBox(
 
 # Select needed columns
 df <- sample_df %>%
-  select(any_of(c('sample', 'qc_pass', 'mean_sequencing_depth', 'median_sequencing_depth',
+  select(any_of(c('sample', 'qc_pass', 'lineage', 'mean_sequencing_depth', 'median_sequencing_depth',
                   'num_aligned_reads', 'total_variants', 'num_consensus_n', 'num_snps', 'num_iupacs', 'num_deletions',
                   'num_deletion_sites', 'num_insertions', 'num_insertion_sites',
                   'genome_completeness', 'minor_snps', 'minor_indels', 'nextclade_frameshifts', 'nonsense_mutations', 'mutated_stop_codons')))
@@ -149,6 +150,13 @@ if ("num_iupacs" %in% colnames(df)) {
   df <- df %>%
     rename(
       "# IUPACs" = num_iupacs
+    )
+}
+# Lineage for covid
+if ("lineage" %in% colnames(df)) {
+  df <- df %>%
+    rename(
+      "Lineage" = lineage
     )
 }
 
