@@ -15,32 +15,24 @@ process ARTIC_ALIGN_TRIM {
 
     output:
     tuple val(meta), path("${meta.id}.*trimmed.rg.sorted.bam"), path("${meta.id}.*trimmed.rg.sorted.bam.bai"), emit: bam
+    tuple val(meta), path("${meta.id}.amplicon_depths.tsv"), optional:true, emit: depths
+    tuple val(meta), path(".alignreport-${mode}.csv"), optional:true, emit: report
     path "versions.yml", emit: versions
 
     script:
-    def argsList = []
-    if ( params.normalise ) {
-        argsList.add("--normalise ${params.normalise}")
-    } else {
-        argsList.add("--normalise 0")
-    }
-    outName = "${meta.id}.trimmed.rg.sorted.bam"
+    def args = task.ext.args ?: ''
+    def outName = "${meta.id}.trimmed.rg.sorted.bam"
+    def trimArg = "--no-trim-primers"
     if ( mode == "primers" ) {
         outName = "${meta.id}.primertrimmed.rg.sorted.bam"
-    } else {
-        argsList.add("--no-trim-primers")
+        trimArg = ""
     }
-    // No read groups if Illumina
-    if ( platform == "illumina" ) {
-        argsList.add("--no-read-groups")
-    }
-    def argsConfig = argsList.join(" ")
     """
     align_trim \\
-        $argsConfig \\
+        $trimArg \\
         --report ${meta.id}.alignreport-${mode}.csv \\
         --amp-depth-report ${meta.id}.amplicon_depths.tsv \\
-        --primer-match-threshold 15 \\
+        $args \\
         $primer_bed \\
         < $bam \\
     | samtools sort -T ${meta.id} - -o $outName

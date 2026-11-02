@@ -716,8 +716,8 @@ nextflow_pipeline {
             def qc = path("$launchDir/results/overall.qc.csv")
             [
                 "sample,qc_pass,num_aligned_reads,num_consensus_n,genome_completeness,mean_sequencing_depth,median_sequencing_depth,total_variants,num_snps,",
-                "reads_25,INCOMPLETE_GENOME;LOW_SEQ_DEPTH,48,29903,0.0,0.19,0,0,0,",
-                "sample1,PASS,86288,2414,0.9192,350.51,325,120,118,"
+                "reads_25,INCOMPLETE_GENOME;LOW_SEQ_DEPTH,50,29903,0.0,0.2,0,0,0,",
+                "sample1,PASS,91996,2412,0.9193,371.83,347,120,118,"
             ].each {
                 assert qc.text.contains(it)
             }
@@ -731,7 +731,7 @@ nextflow_pipeline {
 
             // Consensus outputs
             assert path("$launchDir/results/consensus/reads_25.consensus.fasta").md5 == "00e6cf74dea37a96d9bba96dcd740e7b"
-            assert path("$launchDir/results/consensus/sample1.consensus.fasta").md5 == "392a8a8a0830e61b010e789fbff72d30"
+            assert path("$launchDir/results/consensus/sample1.consensus.fasta").md5 == "1f072bea71e6c4def1ad31e78960104d"
             ["reads_25", "sample1"].each { sample ->
                 def consensus = path("$results/consensus/${sample}.consensus.fasta")
                 assert consensus.readLines().first() == ">$sample MN908947.3"
@@ -741,10 +741,10 @@ nextflow_pipeline {
             def varSample1 = path("$launchDir/results/variation_csvs/sample1_variation.csv")
             [
                 "position,chrom,A,C,T,G,del,ins,total_reads,percentage_nonref,ref_base,variant_type,distribution",
-                "4184,MN908947.3,75,0,0,0,0,0,75,100.0,G,A SNP,NA",
+                "4184,MN908947.3,165,0,0,0,0,0,165,100.0,G,A SNP,NA",
                 "11620,MN908947.3,0,0,37,0,0,0,37,100.0,C,T SNP,NA",
-                "22629,MN908947.3,0,75,0,0,0,0,75,100.0,A,C SNP,NA",
-                "28883,MN908947.3,0,36,0,0,0,0,36,100.0,G,C SNP,NA"
+                "22629,MN908947.3,0,108,0,0,0,0,108,100.0,A,C SNP,NA",
+                "28883,MN908947.3,0,87,0,0,0,0,87,100.0,G,C SNP,NA"
             ].each {
                 assert varSample1.text.contains(it)
             }
