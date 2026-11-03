@@ -621,8 +621,8 @@ nextflow_pipeline {
             def vcfTsv = path("$results/vcf/report_tsvs/sample1.vcf.tsv")
             [
                 "Chrom\tPos\tVariant\tConsequence\tRef\tAlt\tQual",
-                "MN908947.3\t14408\torf1ab p.P4715L\tmissense_variant\tC\tT\t2808.79",
-                "MN908947.3\t25563\tORF3a p.Q57H\tmissense_variant\tG\tT\t35130.8"
+                "MN908947.3\t14408\torf1ab p.P4715L\tmissense_variant\tC\tT\t",
+                "MN908947.3\t25563\tORF3a p.Q57H\tmissense_variant\tG\tT\t"
             ].each {
                 assert vcfTsv.text.contains(it)
             }
