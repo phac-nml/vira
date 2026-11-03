@@ -16,7 +16,7 @@ process ARTIC_ALIGN_TRIM {
     output:
     tuple val(meta), path("${meta.id}.*trimmed.rg.sorted.bam"), path("${meta.id}.*trimmed.rg.sorted.bam.bai"), emit: bam
     tuple val(meta), path("${meta.id}.amplicon_depths.tsv"), optional:true, emit: depths
-    tuple val(meta), path(".alignreport-${mode}.csv"), optional:true, emit: report
+    tuple val(meta), path("${meta.id}.alignreport-${mode}.csv"), optional:true, emit: report
     path "versions.yml", emit: versions
 
     script:

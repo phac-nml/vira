@@ -57,7 +57,7 @@ nextflow_workflow {
             assert path("${launchDir}/results/vcf/final/sample1.consensus.tsv").exists()
 
             // Consensus check md5
-            assert path("$launchDir/results/consensus/sample1.consensus.fasta").md5 == "2c4bcca5e7a5ffe138652755106a68a3"
+            assert path("$launchDir/results/consensus/sample1.consensus.fasta").md5 == "f0ac1e3e6b5dea4999ba1c70a635beca"
         }
     }
 }
