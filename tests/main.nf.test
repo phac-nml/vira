@@ -432,8 +432,8 @@ nextflow_pipeline {
                 // To keep consistent results from downsampled input
                 min_length      = 200
                 max_length      = 2000
-                min_qual_clair3 = 5
-                min_depth       = 15
+                min_qual_clair3 = 7
+                min_depth       = 20
                 min_reads       = 50
             }
         }
@@ -474,8 +474,8 @@ nextflow_pipeline {
             def qc = path("$launchDir/results/overall.qc.csv")
             [
                 "sample,reference,qc_pass,num_aligned_reads,num_segment_reads,num_consensus_n,genome_completeness,mean_sequencing_depth,median_sequencing_depth,total_variants,num_snps,",
-                "ERR14941536,NC_014395.1,PASS,6103,621,10,0.9941,155.64,118.5,61,61,",
-                "ERR14941536,NC_014396.1,PASS,6103,2143,43,0.9889,251.53,218.0,142,142,",
+                "ERR14941536,NC_014395.1,PASS,6103,621,45,0.9734,155.64,118.5,61,61,",
+                "ERR14941536,NC_014396.1,PASS,6103,2143,56,0.9856,251.53,218.0,140,140,",
                 "ERR14941536,NC_014397.1,PASS,6103,3339,0,1.0,215.29,103.0,227,227,",
                 "reads_25,NC_014395.1,TOO FEW SIZE SELECTED READS,0,0,1690,0.0,0.0,0.0,0,0,",
                 "reads_25,NC_014396.1,TOO FEW SIZE SELECTED READS,0,0,3885,0.0,0.0,0.0,0,0,",
@@ -504,12 +504,12 @@ nextflow_pipeline {
             }
 
             //  Fasta file
-            assert path("$launchDir/results/consensus/ERR14941536.consensus.fasta").md5 == "31b467d631c38fd1c9102684fce2b704"
+            assert path("$launchDir/results/consensus/ERR14941536.consensus.fasta").md5 == "80deac379759e0ec95db15c0193a276b"
 
             // SnpEff and VCF
-            assert path("$launchDir/results/vcf/clair3/ERR14941536.fail.vcf").readLines().size() == 24
+            assert path("$launchDir/results/vcf/clair3/ERR14941536.fail.vcf").readLines().size() == 26
             def vcfTsv = path("$launchDir/results/vcf/report_tsvs/ERR14941536.vcf.tsv")
-            assert vcfTsv.readLines().size() == 431
+            assert vcfTsv.readLines().size() == 429
             [
                 "Chrom\tPos\tVariant\tConsequence\tRef\tAlt\tQual",
                 // Check for entries with each Segment
@@ -845,7 +845,7 @@ nextflow_pipeline {
             def qc = path("$launchDir/results/overall.qc.csv")
             [
                 "sample,reference,qc_pass,num_aligned_reads,num_segment_reads,num_consensus_n,genome_completeness,mean_sequencing_depth,median_sequencing_depth,total_variants,num_snps,",
-                "sample1,NC_014395.1,PASS,417348,87884,29,0.9828,6008.01,4543.5,37,37,",
+                "sample1,NC_014395.1,PASS,417348,87884,29,0.9828,6008.01,4543.5,38,37,",
                 "sample1,NC_014396.1,PASS,417348,105532,10,0.9974,3098.36,2340.0,88,87,",
                 "sample1,NC_014397.1,PASS,417348,223932,24,0.9963,3955.53,3271.0,114,114,",
                 "reads_25,NC_014395.1,INCOMPLETE_GENOME;LOW_SEQ_DEPTH,36,12,1690,0.0,0.88,0.0,0,0,",
@@ -875,11 +875,11 @@ nextflow_pipeline {
             }
 
             //  Fasta file
-            assert path("$launchDir/results/consensus/sample1.consensus.fasta").md5 == "36de4b73ab605597f9ae55c4b33fdf65"
+            assert path("$launchDir/results/consensus/sample1.consensus.fasta").md5 == "8f0728f28e7e06671198e6e682f5f03e"
 
             // SnpEff and VCF
             def vcfTsv = path("$launchDir/results/vcf/report_tsvs/sample1.vcf.tsv")
-            assert vcfTsv.readLines().size() == 240
+            assert vcfTsv.readLines().size() == 241
             [
                 "Chrom\tPos\tVariant\tConsequence\tRef\tAlt\tQual",
                 // Check for entries with each Segment
