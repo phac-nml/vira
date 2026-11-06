@@ -108,7 +108,7 @@ def create_ref_dict(ref_fasta: str) -> dict:
 
 def ensure_all_bases_dict_from_counter(counter: Counter) -> dict:
     """Write a summary"""
-    d = {base: counter.get(base, 0) for base in ['A', 'T', 'G', 'C', '*', 'ins']}
+    d = {base: counter.get(base, 0) for base in ['A', 'T', 'G', 'C', '*', 'ins', 'N']}
     d['del'] = d.pop('*')
     return d
 
@@ -257,7 +257,7 @@ def parse_variation_from_bam(bamfile: str, ref_dict: dict, base_q: int,
         case_insensitive_pos_counter = Counter(map(str.upper, data_list))
 
         # Positions before deletions have "-" in them with the deletion length along with the next positions
-        #  containing *s for the deletions. We are going to summarize deletions basd on the *s so need
+        #  containing *s for the deletions. We are going to summarize deletions based on the *s so need
         #  to skip the spots before while tracking the base in the current position
         #  Ex. ['a-1n', 'a-1n', 'A-1N', 'A-1N']
         if any([x for x in data_list if '-' in x]):
@@ -268,6 +268,9 @@ def parse_variation_from_bam(bamfile: str, ref_dict: dict, base_q: int,
         # Can skip spots where we have the reference base as the most common and it isn't above the minimum report percent
         most_common_base, read_count = case_insensitive_pos_counter.most_common(1)[0]
         if (most_common_base == ref_base) and (read_count/num_reads * 100 > 100 - min_report_percent):
+            continue
+        # Ns as most common mean lots of missing data so skip
+        elif most_common_base == 'N':
             continue
 
         # Analyze insertions differently
