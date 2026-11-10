@@ -7,6 +7,7 @@ nextflow_workflow {
     test("Minor variants subworkflow test") {
         tag "minor_variants"
         tag "subworkflow"
+        tag "nanopore"
 
         when {
             params {

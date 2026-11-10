@@ -18,10 +18,12 @@ process CREATE_READ_VARIATION_CSV {
     path "versions.yml", emit: versions
 
     script:
+    def args = task.ext.args ?: ''
     """
     calc_bam_variation.py \\
         --bam $bam \\
         --reference $reference \\
+        $args \\
         --sample $meta.id
 
     # Versions #
@@ -214,7 +216,16 @@ process CREATE_ALL_SAMPLE_SUMMARY_REPORT {
     Rscript \\
         -e "library(rmarkdown)" \\
         -e "library(flexdashboard)" \\
-        -e "rmarkdown::render('$rmd_base_template', params=list($amp_arg, version = '$pipeline_version', revision = '$revision', nf_version = '$nf_version', neg_ctrl_substrings = '$neg_ctrl_substrings'))"
+        -e "rmarkdown::render(
+            '$rmd_base_template',
+            params = list(
+                $amp_arg,
+                version = '$pipeline_version',
+                revision = '$revision',
+                nf_version = '$nf_version',
+                neg_ctrl_substrings = '$neg_ctrl_substrings'
+            )
+        )"
     """
 
     stub:
@@ -241,7 +252,7 @@ process CREATE_SAMPLE_REPORT {
     tuple val(meta), path ("*.html"), emit: sample_report
 
     script:
-    def min_af_arg = "min_allele_freq = ${params.min_allele_freq}"
+    def min_af = params.platform == "nanopore" ? "$params.min_allele_freq" : "$params.max_ambiguity_threshold"
     def output_name = "${meta.id.replaceAll(/[^A-Za-z0-9.-]/, '_')}.html"
     """
     # Setup sample files to be found by RMD
@@ -258,7 +269,15 @@ process CREATE_SAMPLE_REPORT {
     Rscript \\
         -e "library(rmarkdown)" \\
         -e "library(flexdashboard)" \\
-        -e "rmarkdown::render('$rmd_sample_subpage', output_file='$output_name', params=list($min_af_arg, sample_df = '$qc_csv'))"
+        -e "rmarkdown::render(
+            '$rmd_sample_subpage',
+            output_file='$output_name',
+            params=list(
+                min_allele_freq = $min_af,
+                sample_df = '$qc_csv',
+                platform = '${params.platform}'
+            )
+        )"
     """
 
     stub:

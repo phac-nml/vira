@@ -18,7 +18,7 @@ process ARTIC_VCF_FILTER {
     script:
     def args = task.ext.args ?: ''
     """
-    artic_vcf_filter \\
+    adj_artic_vcf_filter.py \\
         $args \\
         $vcf \\
         ${meta.id}.pass.vcf \\

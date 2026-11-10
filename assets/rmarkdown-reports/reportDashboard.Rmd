@@ -1,10 +1,16 @@
 ---
-title: "Sequencing Run Report"
+title: "VIRA Sequencing Run Report"
 output:
   flexdashboard::flex_dashboard:
+    self_contained: true
     orientation: rows
     vertical_layout: scroll
     mathjax: NULL
+    theme:
+      version: 4
+knitr:
+  opts_chunk:
+    fig_embed: false
 params:
     summary_df: 'overall.qc.csv'
     run_amplicons: FALSE
@@ -37,9 +43,7 @@ library(DT)
 library(knitr)
 library(ggplot2)
 library(data.table)
-
-# Set to the jpeg as its smaller
-knitr::opts_chunk$set(dev = 'jpeg')
+library(htmltools)
 ```
 
 ```{r, global, include=FALSE, echo=FALSE, error=TRUE}
@@ -97,8 +101,8 @@ add_pass_value_int <- function(df, column) {
   split_values <- strsplit(df[[column]], ';')
 
   # Define which int values go with which statement
-  key_phrases <- c('PASS', 'POTENTIAL_FRAMESHIFTS', 'PARTIAL_GENOME')
-  values <- c(1, 2, 3)
+  key_phrases <- c('PASS', 'POTENTIAL_FRAMESHIFTS', 'EXCESS_AMBIGUITY', 'PARTIAL_GENOME')
+  values <- c(1, 2, 2, 3)
 
   # Initialize a vector to store the results
   results <- integer(length(df[[column]]))
@@ -198,11 +202,11 @@ p
 Row
 ------------------------------
 
-### **Table `r table_number <- table_number + 1; as.roman(table_number)`.** All Samples Data Summary
+### {-}
 ```{r, data_table, echo=FALSE, error=TRUE}
 # Create an interactive table of all samples with the different qc statuses highlighted
 df <- summary_df %>%
-  select(any_of(c('sample', 'qc_pass', 'mean_sequencing_depth', 'median_sequencing_depth',
+  select(any_of(c('sample', 'qc_pass', 'lineage', 'mean_sequencing_depth', 'median_sequencing_depth',
                   'num_aligned_reads', 'total_variants', 'num_snps', 'num_iupacs',
                   'num_deletions', 'num_deletion_sites', 'num_insertions',
                   'num_insertion_sites', 'genome_completeness')))
@@ -231,15 +235,33 @@ if ("num_iupacs" %in% colnames(df)) {
       "# IUPACs" = num_iupacs
     )
 }
+# Lineage for covid
+if ("lineage" %in% colnames(df)) {
+  df <- df %>%
+    rename(
+      "Lineage" = lineage
+    )
+}
 
 # Add color to table
 df$completeness_int_color <- add_pass_value_int(df, 'QC Pass')
 
+# Table#
+table_number <- table_number + 1
+table_label <- paste0("Table ", as.roman(table_number))
+
 # Using datatable, removing the index row and adding in highlights for the status
 summary_dt <- df %>%
-  DT::datatable(rownames = FALSE,
+  DT::datatable(
+    rownames = FALSE,
+    caption = htmltools::tags$caption(
+      style = 'caption-side: top',
+      htmltools::strong(table_label), ' All Samples Data Summary'
+    ),
     options = list(
+      pageLength = 10,
       scrollX = FALSE,
+      scrollY = "",
       columnDefs = list(
         list(className = 'dt-left', targets = "_all"),
         list(visible=FALSE, targets='completeness_int_color')
@@ -365,7 +387,7 @@ valueBox(params$nf_version, "Nextflow Version")
 
 ## Row
 
-### **Table `r table_number <- table_number + 1; as.roman(table_number)`.** Software Versions {data-height=550}
+### {-}
 
 ```{r, software_ver, echo=FALSE, error=TRUE}
 # Read the YAML file
@@ -391,11 +413,21 @@ for (key_process in names(yaml_data)) {
 }
 
 # Create table
+table_number <- table_number + 1
+table_label <- paste0("Table ", as.roman(table_number))
+
 df <- data.frame("Process Name" = process, "Software" = softwares, "Version" = versions)
 ddt <- df %>%
-  DT::datatable(rownames = FALSE, class = 'cell-border stripe',
+  DT::datatable(
+    rownames = FALSE,
+    class = 'cell-border stripe',
+    caption = htmltools::tags$caption(
+      style = 'caption-side: top',
+      htmltools::strong(table_label), ' Software Versions'
+    ),
     options = list(
       scrollX = FALSE,
+      scrollY = "",
       columnDefs = list(
         list(className = 'dt-left', targets = "_all")
   )))

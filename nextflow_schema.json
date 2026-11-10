@@ -261,9 +261,15 @@
                 "min_variant_qual_freebayes": {
                     "type": "integer",
                     "description": "Minimum freebayes quality (probability) to filter variants",
-                    "default": 20,
+                    "default": 0,
                     "minimum": 0,
                     "fa_icon": "far fa-minus-square"
+                },
+                "ambiguity_warning_threshold": {
+                    "type": "integer",
+                    "description": "Minimum number of ambigious sites to give an EXCESS_AMBIGUITY warning status in final QC",
+                    "default": 5,
+                    "minimum": 0
                 }
             }
         },

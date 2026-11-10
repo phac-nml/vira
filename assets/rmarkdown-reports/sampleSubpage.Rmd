@@ -1,13 +1,20 @@
 ---
-title: "Sample Report"
+title: "VIRA Sample Report"
 output:
   flexdashboard::flex_dashboard:
+    self_contained: true
     orientation: rows
     vertical_layout: scroll
     mathjax: NULL
+    theme:
+      version: 4
+knitr:
+  opts_chunk:
+    fig_embed: false
 params:
     sample_df: NULL
     min_allele_freq: 0.65
+    platform: NULL
 ---
 
 <!-- Style updates mostly to make sure the caption boxes are all matching -->
@@ -30,9 +37,7 @@ library(DT)
 library(knitr)
 library(ggplot2)
 library(data.table)
-
-# Set to the jpeg as its smaller
-knitr::opts_chunk$set(dev = 'jpeg')
+library(htmltools)
 
 # Set parameters
 sample_df <- fread(params$sample_df, header = TRUE)
@@ -99,6 +104,9 @@ if ( sample_status == 'PASS' ) {
 } else if ( grepl(sample_status, 'POTENTIAL_FRAMESHIFTS') ) {
     sec_icon = ""
     sec_color = "orange"
+  } else if ( grepl(sample_status, 'EXCESS_AMBIGUITY') ) {
+    sec_icon = ""
+    sec_color = "orange"
 } else if ( grepl(sample_status, 'PARTIAL_GENOME') ) {
     sec_icon = ""
     sec_color = "warning"
@@ -120,7 +128,7 @@ valueBox(
 
 # Select needed columns
 df <- sample_df %>%
-  select(any_of(c('sample', 'qc_pass', 'mean_sequencing_depth', 'median_sequencing_depth',
+  select(any_of(c('sample', 'qc_pass', 'lineage', 'mean_sequencing_depth', 'median_sequencing_depth',
                   'num_aligned_reads', 'total_variants', 'num_consensus_n', 'num_snps', 'num_iupacs', 'num_deletions',
                   'num_deletion_sites', 'num_insertions', 'num_insertion_sites',
                   'genome_completeness', 'minor_snps', 'minor_indels', 'nextclade_frameshifts', 'nonsense_mutations', 'mutated_stop_codons')))
@@ -151,6 +159,13 @@ if ("num_iupacs" %in% colnames(df)) {
       "# IUPACs" = num_iupacs
     )
 }
+# Lineage for covid
+if ("lineage" %in% colnames(df)) {
+  df <- df %>%
+    rename(
+      "Lineage" = lineage
+    )
+}
 
 # Rename columns for minor snps, if available
 if ("minor_snps" %in% colnames(df)) {
@@ -173,7 +188,8 @@ if ("nextclade_frameshifts" %in% colnames(df)) {
 
 # Create sample information table
 sddt <- df %>%
-  datatable(rownames = FALSE,
+  datatable(
+    rownames = FALSE,
     options = list(
       dom = 't',
       paging = FALSE,
@@ -255,16 +271,23 @@ p
 
 ## Row
 
-### **Table II:** Consensus Called Variants
+### {-}
 ```{r, variant_table, echo=FALSE, error=TRUE}
 # Create table of called variants using the vcf file turned into a tsv
 var_f <- paste0("./variant_tsvs/", sample, ".vcf.tsv")
 if (file.exists(var_f)) {
   variants <- read.table(var_f, header = TRUE, sep = "\t", check.names = FALSE, colClasses = "character")
   ddt <- variants %>%
-    DT::datatable(rownames = FALSE,
+    DT::datatable(
+      rownames = FALSE,
+      caption = htmltools::tags$caption(
+        style = 'caption-side: top',
+        htmltools::strong('Table II:'), ' Consensus Called Variants. VCF-based summary table of the variants found in the final consensus sequence.'
+      ),
       options = list(
-        scrollX = FALSE
+        pageLength = 10,
+        scrollX = FALSE,
+        scrollY = ""
     )) %>%
     formatRound(columns = c('Qual'), digits = 2) %>%
     formatRound(columns = c('Alt Allele Fraction'), digits = 4) %>%

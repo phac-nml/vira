@@ -59,10 +59,10 @@ The table here summarizes sequencing and QC metrics for all samples identified a
 
 Future iterations of this pipeline aim to include more checks for negative controls.
 
-Row {data-height=500}
+Row
 ------------------------------
 
-### **Table `r table_number <- table_number + 1; as.roman(table_number)`.** Negative Controls
+### {-}
 ```{r, n_table, echo=FALSE, error=TRUE}
 df <- control_df %>%
     select(any_of(c("sample", "neg_control_info", "mean_sequencing_depth", "median_sequencing_depth",
@@ -82,11 +82,21 @@ df <- control_df %>%
 # Add color to table
 df$completeness_int_color <- add_pass_value_int(df, 'QC Pass')
 
+# Track table#
+table_number <- table_number + 1
+table_label <- paste0("Table ", as.roman(table_number))
+
 # Using datatable, removing the index row and adding in highlights for the status
 summary_dt <- df %>%
-  DT::datatable(rownames = FALSE,
+  DT::datatable(
+    rownames = FALSE,
+    caption = htmltools::tags$caption(
+      style = 'caption-side: top',
+      htmltools::strong(table_label), ' Negative Controls'
+    ),
     options = list(
       scrollX = FALSE,
+      scrollY = "",
       columnDefs = list(
         list(className = 'dt-left', targets = "_all"),
         list(visible=FALSE, targets='completeness_int_color')
