@@ -45,6 +45,7 @@ process MAKE_SAMPLE_QC_CSV {
         $nextcladeCsvArg \\
         $pangolinArg \\
         --sample $meta.id \\
+        --ambiguity_warning_threshold ${params.ambiguity_warning_threshold} \\
         --irida_id $meta.irida_id
 
     # Versions #

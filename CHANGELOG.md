@@ -3,9 +3,9 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.0] - 2026-10-xx
+## [2.1.0] - 2026-11-xx
 
-Small update linking in SARS-CoV-2 pangolin results to the final report as an example of virus specific process work along with adjusting clair3 parameters to use `haploid_sensitive` for better detection of mixed samples
+Update linking in SARS-CoV-2 pangolin results to the final report as an example of virus specific process work along with adjusting mapping and variant calling parameters based on testing with more viruses. Also some fixes to the final report and a new excess ambiguity flag for Illumina data for when there are by default more than 5 mixed sites
 
 ### `Changed`
 
@@ -19,6 +19,8 @@ Small update linking in SARS-CoV-2 pangolin results to the final report as an ex
 - Illumina variant filtering adjustment [(PR #32)](https://github.com/phac-nml/vira/pull/32)
   - Set the minimum variant filtering quality to 0 due to mixed sites being reporting as the reference base if the underlying mixture was >50% reference allele which caused the freebayes quality to be below 1 and thus be filtered out
     - Setting the variant quality back up to the previous default (20) reverts this if you require more stringency for a ambiguous basecalls
+- Updates to the final report to fix scrolling [(PR #32)](https://github.com/phac-nml/vira/pull/32)
+- Added in an Illumina QC flag for when there are, by default, more than 5 ambiguous sites in the genome [(PR #32)](https://github.com/phac-nml/vira/pull/32)
 
 ## [2.0.0] - 2026-10-07
 
