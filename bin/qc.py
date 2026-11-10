@@ -80,6 +80,13 @@ def init_parser() -> argparse.ArgumentParser:
         help='Input run TSV metadata file'
     )
     parser.add_argument(
+        '--ambiguity_warning_threshold',
+        required=False,
+        type=int,
+        default=5,
+        help=''
+    )
+    parser.add_argument(
         '--seq_bed',
         required=False,
         type=str,
@@ -517,7 +524,7 @@ def parse_pangolin_csv(pango_csv: str, sample: str) -> Tuple[str, str]:
     return 'No Data', 'No Data'
 
 
-def grade_qc(completeness: float, mean_dep: float, median_dep: float,
+def grade_qc(completeness: float, mean_dep: float, median_dep: float, excess_ambiguity: bool,
              fs_status: bool, nonsense_status: bool, mutated_stop_status: bool) -> str:
     """Determine if the sample passes internal QC metrics and assign a PASS or why it failed
 
@@ -526,6 +533,7 @@ def grade_qc(completeness: float, mean_dep: float, median_dep: float,
         completeness (float): Final genome completeness
         mean_dep (float): Mean sequencing depth
         median_dep (float): Median sequencing depth
+        excess_ambiguity (bool): True if there are >= the set number of ambiguous bases (default 5)
         fs_status (bool): True if any potential frameshift variants from VCF parsing or Nextclade are found
         nonsense_status (bool): True if any nonsensus mutations from Nextclade are found
         mutated_stop_status (bool): True if any stop codon mutations from Nextclade are found
@@ -553,6 +561,9 @@ def grade_qc(completeness: float, mean_dep: float, median_dep: float,
     # Stop Codon Mutations
     if mutated_stop_status:
         qc_status.append('STOP_CODON_MUTATION')
+    # Excess Ambiguity
+    if excess_ambiguity:
+        qc_status.append('EXCESS_AMBIGUITY')
 
     if qc_status:
         return ';'.join(qc_status)
@@ -605,6 +616,7 @@ def main() -> None:
             # Grade QC
             mean_depth = depth_dict[chrom].get('mean', 0)
             median_depth = depth_dict[chrom].get('median', 0)
+            excess_ambiguity = (var_count_dict['num_iupacs'] >= args.ambiguity_warning_threshold)
 
             #  Using the nextclade count (if available) to take into account the full gene effect
             if args.nextclade_csv:
@@ -614,7 +626,8 @@ def main() -> None:
             nonsense_status = (nc_nonsense != '')
             mutated_stop_status = (nc_mutated_stop_codons != '')
 
-            qc_status = grade_qc(completeness, mean_depth, median_depth, fs_status, nonsense_status, mutated_stop_status)
+            qc_status = grade_qc(completeness, mean_depth, median_depth, excess_ambiguity,
+                                 fs_status, nonsense_status, mutated_stop_status)
 
             # Final Output
             #  Main columns
