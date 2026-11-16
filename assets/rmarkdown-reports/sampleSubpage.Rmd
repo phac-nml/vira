@@ -101,23 +101,21 @@ sample_status <- sample_df$qc_pass[1]
 if ( sample_status == 'PASS' ) {
     sec_icon = ""
     sec_color = "success"
-} else if ( grepl(sample_status, 'POTENTIAL_FRAMESHIFTS') ) {
+} else if ( grepl('PARTIAL_GENOME', sample_status) ) {
     sec_icon = ""
     sec_color = "orange"
-  } else if ( grepl(sample_status, 'EXCESS_AMBIGUITY') ) {
-    sec_icon = ""
-    sec_color = "orange"
-} else if ( grepl(sample_status, 'PARTIAL_GENOME') ) {
-    sec_icon = ""
-    sec_color = "warning"
-} else {
+} else if ( grepl('INCOMPLETE_GENOME', sample_status) ) {
     sec_icon = ""
     sec_color = "danger"
+} else {
+    sec_icon = ""
+    sec_color = "#c0c04d"
 }
+
 valueBox(
-  sample_status,
-  icon = sec_icon,
-  color = sec_color
+    sample_status,
+    icon = sec_icon,
+    color = sec_color
 )
 ```
 

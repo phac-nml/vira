@@ -545,8 +545,9 @@ def grade_qc(completeness: float, mean_dep: float, median_dep: float, excess_amb
     qc_status = []
     # Completeness
     if completeness < 0.9:
+        # If we are failing just want to report that
         if completeness < 0.5:
-            qc_status.append('INCOMPLETE_GENOME')
+            return 'INCOMPLETE_GENOME'
         else:
             qc_status.append('PARTIAL_GENOME')
     # Coverage Depth

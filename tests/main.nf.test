@@ -155,7 +155,7 @@ nextflow_pipeline {
                 // Summary Reports
                 "",
                 "overall.qc.csv",
-                "reportDashboard.html",
+                "VIRA-Report.html",
                 "iridanext.output.json",
                 "filtered_samples.csv",
 
@@ -190,7 +190,7 @@ nextflow_pipeline {
             [
                 "sample,qc_pass,num_aligned_reads,num_consensus_n,genome_completeness,mean_sequencing_depth,median_sequencing_depth,total_variants,num_snps,",
                 "reads_bad,TOO FEW SIZE SELECTED READS,0,29903,0.0,0.0,0,0,0,",
-                "reads_100,INCOMPLETE_GENOME;LOW_SEQ_DEPTH,66,29903,0.0,2.34,2,0,0,",
+                "reads_100,INCOMPLETE_GENOME,66,29903,0.0,2.34,2,0,0,",
                 "reads_25,TOO FEW SIZE SELECTED READS,0,29903,0.0,0.0,0,0,0,",
                 "negative-ctrl,PASS,0,29903,0.0,0.0,0,0,0,",
                 "sample1,PASS,7598,1159,0.9612,268.65,219,54,49,",
@@ -240,12 +240,12 @@ nextflow_pipeline {
 
             // IRIDA Next output
             def iridanext = path("$results/iridanext.output.json").json
-            assert iridanext.files.global*.path.contains("reportDashboard.html")
+            assert iridanext.files.global*.path.contains("VIRA-Report.html")
             assert iridanext.files.global*.path.contains("pipeline_info/software_versions.yml")
 
             // IRIDA metadata
             assert iridanext.metadata.samples.reads_bad.qc_pass == "TOO FEW SIZE SELECTED READS"
-            assert iridanext.metadata.samples.reads_100.qc_pass == "INCOMPLETE_GENOME;LOW_SEQ_DEPTH"
+            assert iridanext.metadata.samples.reads_100.qc_pass == "INCOMPLETE_GENOME"
             assert iridanext.metadata.samples.reads_25.qc_pass == "TOO FEW SIZE SELECTED READS"
             assert iridanext.metadata.samples.negative_ctrl.qc_pass == "PASS"
             assert iridanext.metadata.samples.negative_ctrl.neg_control_info == "PASS"
@@ -296,7 +296,7 @@ nextflow_pipeline {
                 // Summary Reports
                 "",
                 "overall.qc.csv",
-                "reportDashboard.html",
+                "VIRA-Report.html",
                 "sample_reports/sample1.html",
                 "sample_reports/sample2.html",
                 "iridanext.output.json",
@@ -336,7 +336,7 @@ nextflow_pipeline {
             [
                 "sample,qc_pass,num_aligned_reads,num_consensus_n,genome_completeness,mean_sequencing_depth,median_sequencing_depth,total_variants,num_snps,",
                 "reads_bad,TOO FEW SIZE SELECTED READS,0,29903,0.0,0.0,0,0,0,",
-                "reads_100,INCOMPLETE_GENOME;LOW_SEQ_DEPTH,66,29903,0.0,2.25,2,0,0,",
+                "reads_100,INCOMPLETE_GENOME,66,29903,0.0,2.25,2,0,0,",
                 "reads_25,TOO FEW SIZE SELECTED READS,0,29903,0.0,0.0,0,0,0,",
                 "negative-ctrl,PASS,0,29903,0.0,0.0,0,0,0,",
                 "sample1,PASS,7594,2699,0.9097,258.38,213,56,50,",
@@ -389,7 +389,7 @@ nextflow_pipeline {
             // IRIDA Next output
             //
             def iridanext = path("$launchDir/results/iridanext.output.json").json
-            assert iridanext.files.global.any { it.path == "reportDashboard.html" }
+            assert iridanext.files.global.any { it.path == "VIRA-Report.html" }
             assert iridanext.files.global.any { it.path == "pipeline_info/software_versions.yml" }
             assert iridanext.files.global.any { it.path == "pangolin/lineage_report.csv" }
             ["reads_100", "sample1", "sample2"].each { sample ->
@@ -399,7 +399,7 @@ nextflow_pipeline {
             assert iridanext.files.samples.sample1.any { it.path == "sample_reports/sample1.html" }
             assert iridanext.files.samples.sample2.any { it.path == "sample_reports/sample2.html" }
             assert iridanext.metadata.samples.reads_bad.qc_pass == "TOO FEW SIZE SELECTED READS"
-            assert iridanext.metadata.samples.reads_100.qc_pass == "INCOMPLETE_GENOME;LOW_SEQ_DEPTH"
+            assert iridanext.metadata.samples.reads_100.qc_pass == "INCOMPLETE_GENOME"
             assert iridanext.metadata.samples.reads_25.qc_pass == "TOO FEW SIZE SELECTED READS"
             assert iridanext.metadata.samples.negative_ctrl.neg_control_info == "PASS"
             assert iridanext.metadata.samples.sample1.run_summary == ""
@@ -554,7 +554,7 @@ nextflow_pipeline {
                 // Summary Reports
                 "",
                 "overall.qc.csv",
-                "reportDashboard.html",
+                "VIRA-Report.html",
                 "iridanext.output.json",
                 "filtered_samples.csv",
 
@@ -586,7 +586,7 @@ nextflow_pipeline {
             def qc = path("$results/overall.qc.csv")
             [
                 "sample,qc_pass,num_aligned_reads,num_consensus_n,genome_completeness,mean_sequencing_depth,median_sequencing_depth,total_variants,num_snps,",
-                "reads_25,INCOMPLETE_GENOME;LOW_SEQ_DEPTH,28,29903,0.0,0.11,0,0,0,",
+                "reads_25,INCOMPLETE_GENOME,28,29903,0.0,0.11,0,0,0,",
                 "sample1,PARTIAL_GENOME,42192,14128,0.5275,178.34,23,2,2,"
             ].each {
                 assert qc.text.contains(it)
@@ -632,7 +632,7 @@ nextflow_pipeline {
 
             // IRIDA Next output
             def iridanext = path("$results/iridanext.output.json").json
-            assert iridanext.files.global*.path.contains("reportDashboard.html")
+            assert iridanext.files.global*.path.contains("VIRA-Report.html")
             assert iridanext.files.global*.path.contains("pipeline_info/software_versions.yml")
             assert iridanext.files.global*.path.contains("filtered_samples.csv")
             ["reads_25", "sample1"].each { sample ->
@@ -642,7 +642,7 @@ nextflow_pipeline {
 
             // IRIDA metadata
             assert iridanext.metadata.samples.reads_1.qc_pass == "TOO FEW SIZE SELECTED READS"
-            assert iridanext.metadata.samples.reads_25.qc_pass == "INCOMPLETE_GENOME;LOW_SEQ_DEPTH"
+            assert iridanext.metadata.samples.reads_25.qc_pass == "INCOMPLETE_GENOME"
             assert iridanext.metadata.samples.sample1.qc_pass == "PARTIAL_GENOME"
             assert iridanext.metadata.samples.sample1.genome_completeness == "0.5275"
             assert iridanext.metadata.samples.sample1.num_snps == "2"
@@ -682,7 +682,7 @@ nextflow_pipeline {
                 // Summary Reports
                 "",
                 "overall.qc.csv",
-                "reportDashboard.html",
+                "VIRA-Report.html",
                 "sample_reports/sample1.html",
                 "iridanext.output.json",
 
@@ -716,7 +716,7 @@ nextflow_pipeline {
             def qc = path("$launchDir/results/overall.qc.csv")
             [
                 "sample,qc_pass,num_aligned_reads,num_consensus_n,genome_completeness,mean_sequencing_depth,median_sequencing_depth,total_variants,num_snps,",
-                "reads_25,INCOMPLETE_GENOME;LOW_SEQ_DEPTH,50,29903,0.0,0.2,0,0,0,",
+                "reads_25,INCOMPLETE_GENOME,50,29903,0.0,0.2,0,0,0,",
                 "sample1,PASS,93752,2349,0.9214,377.63,351,120,118,"
             ].each {
                 assert qc.text.contains(it)
@@ -768,7 +768,7 @@ nextflow_pipeline {
 
             // IRIDA Next output
             def iridanext = path("$launchDir/results/iridanext.output.json").json
-            assert iridanext.files.global.any { it.path == "reportDashboard.html" }
+            assert iridanext.files.global.any { it.path == "VIRA-Report.html" }
             assert iridanext.files.global.any { it.path == "pipeline_info/software_versions.yml" }
             assert iridanext.files.global.any { it.path == "pangolin/lineage_report.csv" }
             ["reads_25", "sample1"].each { sample ->
@@ -780,7 +780,7 @@ nextflow_pipeline {
             assert iridanext.files.samples.sample1.any { it.path == "sample_reports/sample1.html" }
             assert iridanext.metadata.samples.sample1.qc_pass == "PASS"
             assert iridanext.metadata.samples.sample1.run_status == "NO_CONTROLS"
-            assert iridanext.metadata.samples.reads_25.qc_pass == "INCOMPLETE_GENOME;LOW_SEQ_DEPTH"
+            assert iridanext.metadata.samples.reads_25.qc_pass == "INCOMPLETE_GENOME"
             assert iridanext.metadata.samples.reads_25.run_summary == "No negative controls found in run"
             assert iridanext.metadata.samples.sample1.num_snps == "118"
             assert iridanext.metadata.samples.reads_25.num_consensus_n == "29903"
@@ -848,9 +848,9 @@ nextflow_pipeline {
                 "sample1,NC_014395.1,PASS,417348,87884,29,0.9828,6008.01,4543.5,38,37,",
                 "sample1,NC_014396.1,PASS,417348,105532,10,0.9974,3098.36,2340.0,88,87,",
                 "sample1,NC_014397.1,PASS,417348,223932,24,0.9963,3955.53,3271.0,114,114,",
-                "reads_25,NC_014395.1,INCOMPLETE_GENOME;LOW_SEQ_DEPTH,36,12,1690,0.0,0.88,0.0,0,0,",
-                "reads_25,NC_014396.1,INCOMPLETE_GENOME;LOW_SEQ_DEPTH,36,6,3885,0.0,0.18,0.0,0,0,",
-                "reads_25,NC_014397.1,INCOMPLETE_GENOME;LOW_SEQ_DEPTH,36,18,6404,0.0,0.34,0.0,0,0"
+                "reads_25,NC_014395.1,INCOMPLETE_GENOME,36,12,1690,0.0,0.88,0.0,0,0,",
+                "reads_25,NC_014396.1,INCOMPLETE_GENOME,36,6,3885,0.0,0.18,0.0,0,0,",
+                "reads_25,NC_014397.1,INCOMPLETE_GENOME,36,18,6404,0.0,0.34,0.0,0,0"
             ].each {
                 assert qc.text.contains(it)
             }

@@ -203,7 +203,7 @@ process CREATE_ALL_SAMPLE_SUMMARY_REPORT {
     val neg_ctrl_substrings
 
     output:
-    path "reportDashboard.html"
+    path "VIRA-Report.html"
 
     script:
     def amp_arg = merged_amplicon_depth_csv ? "run_amplicons = TRUE" : "run_amplicons = FALSE"
@@ -218,6 +218,7 @@ process CREATE_ALL_SAMPLE_SUMMARY_REPORT {
         -e "library(flexdashboard)" \\
         -e "rmarkdown::render(
             '$rmd_base_template',
+            output_file='VIRA-Report.html',
             params = list(
                 $amp_arg,
                 version = '$pipeline_version',
@@ -230,7 +231,7 @@ process CREATE_ALL_SAMPLE_SUMMARY_REPORT {
 
     stub:
     """
-    touch reportDashboard.html
+    touch VIRA-Report.html
     """
 }
 process CREATE_SAMPLE_REPORT {
