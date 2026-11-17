@@ -143,16 +143,6 @@ passing_samples <- sum(summary_df[["qc_pass"]] == "PASS", na.rm = FALSE)
 valueBox(passing_samples, icon = "")
 ```
 
-### Run Name
-```{r, run_name_box, echo=FALSE, error=TRUE}
-if ("run_name" %in% colnames(summary_df)) {
-  run_name <- summary_df[1, 'run_name']
-} else {
-  run_name <- "NA"
-}
-valueBox(run_name, icon = "")
-```
-
 ### Negative Control Status
 ```{r, controls_status_box, echo=FALSE, error=TRUE}
 # Based on run satus, set colour and icon
@@ -188,6 +178,12 @@ df <- select(summary_df, sample, genome_completeness)
 
 # Creat plot, adding in titles and the PASS/WARN hlines (may need to figure out how to label these)
 p <- plot_ly(df, x = ~sample, y=~genome_completeness, type = 'bar', color = ~genome_completeness, colors = "RdYlGn", name="") %>%
+  %>%
+  colorbar(
+    limits = c(0, 1),
+    title = "Completeness",
+    tickformat = ".0%"
+  ) %>%
   layout(
     title = "Sample Genome Completeness",
     xaxis = list(title = "Sample Name"),
