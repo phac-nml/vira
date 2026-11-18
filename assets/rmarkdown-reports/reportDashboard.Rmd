@@ -177,8 +177,15 @@ Row {dataset-height=250}
 df <- select(summary_df, sample, genome_completeness)
 
 # Creat plot, adding in titles and the PASS/WARN hlines (may need to figure out how to label these)
-p <- plot_ly(df, x = ~sample, y=~genome_completeness, type = 'bar', color = ~genome_completeness, colors = "RdYlGn", name="") %>%
-  %>%
+p <- plot_ly(
+  df,
+  x = ~sample,
+  y = ~genome_completeness,
+  type = 'bar',
+  color = ~genome_completeness,
+  colors = "RdYlGn",
+  name=""
+  ) %>%
   colorbar(
     limits = c(0, 1),
     title = "Completeness",
