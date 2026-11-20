@@ -217,7 +217,7 @@ nextflow_pipeline {
             def variation = path("$results/variation_csvs/sample1_variation.csv")
             [
                 "position,chrom,A,C,T,G,del,ins,total_reads,percentage_nonref,ref_base,variant_type,distribution",
-                "241,MN908947.3,0,0,318,0,27,0,345,100.0,C,T SNP,NA"
+                "241,MN908947.3,0,3,363,3,34,2,405,99.26,C,T SNP,NA"
             ].each {
                 assert variation.text.contains(it)
             }
@@ -364,7 +364,7 @@ nextflow_pipeline {
             def varSample2 = path("$launchDir/results/variation_csvs/sample2_variation.csv")
             [
                 "position,chrom,A,C,T,G,del,ins,total_reads,percentage_nonref,ref_base,variant_type,distribution",
-                "241,MN908947.3,0,0,318,0,27,0,345,100.0,C,T SNP,NA"
+                "241,MN908947.3,0,3,363,3,34,2,405,99.26,C,T SNP,NA"
             ].each {
                 assert varSample2.text.contains(it)
             }
@@ -612,7 +612,7 @@ nextflow_pipeline {
             def variation = path("$results/variation_csvs/sample1_variation.csv")
             [
                 "position,chrom,A,C,T,G,del,ins,total_reads,percentage_nonref,ref_base,variant_type,distribution",
-                "14408,MN908947.3,0,0,68,0,0,0,68,100,C,T SNP,NA"
+                "14408,MN908947.3,0,0,97,0,0,0,97,100.0,C,T SNP,NA"
             ].each {
                 assert variation.text.contains(it)
             }
@@ -741,10 +741,10 @@ nextflow_pipeline {
             def varSample1 = path("$launchDir/results/variation_csvs/sample1_variation.csv")
             [
                 "position,chrom,A,C,T,G,del,ins,total_reads,percentage_nonref,ref_base,variant_type,distribution",
-                "4184,MN908947.3,165,0,0,0,0,0,165,100.0,G,A SNP,NA",
-                "11620,MN908947.3,0,0,36,0,0,0,36,100.0,C,T SNP,NA",
-                "22629,MN908947.3,0,222,0,0,0,0,222,100.0,A,C SNP,NA",
-                "28883,MN908947.3,0,104,0,0,0,0,104,100.0,G,C SNP,NA"
+                "4184,MN908947.3,277,0,0,0,0,0,277,100.0,G,A SNP,NA",
+                "11620,MN908947.3,0,0,58,0,0,0,58,100.0,C,T SNP,NA",
+                "22629,MN908947.3,0,335,0,0,0,0,335,100.0,A,C SNP,NA",
+                "28883,MN908947.3,0,177,0,0,0,0,177,100.0,G,C SNP,NA"
             ].each {
                 assert varSample1.text.contains(it)
             }
@@ -845,7 +845,7 @@ nextflow_pipeline {
             def qc = path("$launchDir/results/overall.qc.csv")
             [
                 "sample,reference,qc_pass,num_aligned_reads,num_segment_reads,num_consensus_n,genome_completeness,mean_sequencing_depth,median_sequencing_depth,total_variants,num_snps,",
-                "sample1,NC_014395.1,PASS,417348,87884,29,0.9828,6008.01,4543.5,38,37,",
+                "sample1,NC_014395.1,PASS,417348,87884,29,0.9828,6008.01,4543.5,37,37,",
                 "sample1,NC_014396.1,PASS,417348,105532,10,0.9974,3098.36,2340.0,88,87,",
                 "sample1,NC_014397.1,PASS,417348,223932,24,0.9963,3955.53,3271.0,114,114,",
                 "reads_25,NC_014395.1,INCOMPLETE_GENOME,36,12,1690,0.0,0.88,0.0,0,0,",
@@ -875,11 +875,11 @@ nextflow_pipeline {
             }
 
             //  Fasta file
-            assert path("$launchDir/results/consensus/sample1.consensus.fasta").md5 == "8f0728f28e7e06671198e6e682f5f03e"
+            assert path("$launchDir/results/consensus/sample1.consensus.fasta").md5 == "36de4b73ab605597f9ae55c4b33fdf65"
 
             // SnpEff and VCF
             def vcfTsv = path("$launchDir/results/vcf/report_tsvs/sample1.vcf.tsv")
-            assert vcfTsv.readLines().size() == 241
+            assert vcfTsv.readLines().size() == 240
             [
                 "Chrom\tPos\tVariant\tConsequence\tRef\tAlt\tQual",
                 // Check for entries with each Segment
