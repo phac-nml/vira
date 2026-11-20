@@ -352,7 +352,7 @@ Final CSV file(s) for both individual samples and the overall run that combines 
 <details markdown="1">
 <summary>Output files</summary>
 
-- `reportDashboard.html`: Custom report dashboard displaying overall run metrics
+- `VIRA-Report.html`: Custom report dashboard displaying overall run metrics
 - `/sample_reports/*.html`: Custom report displaying sample specific metrics
 </details>
 

@@ -1,10 +1,10 @@
 # VIRA
 
-A generic viral assembly and QC pipeline for reference-based analysis of viral sequencing data. The pipeline supports both Oxford Nanopore and Illumina sequencing data and can be used with amplicon or non-amplicon sequencing approaches. This pipeline can be used as a starting point for analyses on viruses without dedicated workflows already available.
+A generic viral assembly and QC pipeline for reference-based analysis of viral sequencing data. The pipeline supports both Oxford Nanopore (ONT) and Illumina sequencing data and can be used with amplicon or non-amplicon sequencing approaches. This pipeline can be used as a starting point for analyses on viruses without dedicated workflows already available.
 
-For Nanopore sequencing, the pipeline utilises a re-implementation of the [ARTIC pipeline](https://github.com/artic-network/fieldbioinformatics/tree/master/artic) for consensus sequence generation to separate out the individual steps allowing greater control on tool versions along with how data is run through the processes. As of [`v2.0.0`](https://github.com/phac-nml/measeq/releases/tag/2.0.0), Medaka and Nanopolish have been deprecated as variant callers and the pipeline now uses [`Clair3 v2`](https://github.com/HKU-BAL/clair3) for primary variant calling with Nanopore data
+For Nanopore sequencing, the pipeline utilises a re-implementation of the [ARTIC pipeline](https://github.com/artic-network/fieldbioinformatics/tree/master/artic) for consensus sequence generation to separate out the individual steps allowing greater control on tool versions along with how data is run through the processes. As of [`v2.0.0`](https://github.com/phac-nml/measeq/releases/tag/2.0.0), Medaka and Nanopolish have been deprecated as variant callers and the pipeline now uses [`Clair3 v2`](https://github.com/HKU-BAL/clair3) for primary variant calling.
 
-For Illumina sequencing, the pipeline integrates approaches, defaults, and standards from previous SARS-CoV-2, RSV, Mpox, and Measles work done at the lab with the current implementation of the pipeline useing [`FreeBayes`](https://github.com/freebayes/freebayes) as the default variant caller with the additional option to use iVar instead.
+For Illumina sequencing, the pipeline integrates approaches, defaults, and standards from previous SARS-CoV-2, RSV, Mpox, and Measles work done at the lab with the current implementation of the pipeline using [Bowtie2](https://github.com/benlangmead/bowtie2) to map reads to the reference and [`FreeBayes`](https://github.com/freebayes/freebayes) to call variants with the option to use iVar for variant calls instead.
 
 The goals of this pipeline are:
 
@@ -23,6 +23,7 @@ Initial Simplified Workflow Diagram and potential next implementation steps
   - [Installation](#installation)
   - [Running Commands](#running-commands)
     - [Minimal Run Command](#minimal-run-command)
+    - [Optional Inputs](#optional-inputs)
   - [Outputs](#outputs)
   - [Limitations](#limitations)
   - [Citations](#citations)
@@ -58,7 +59,7 @@ Data can be ingested by the pipeline in two different ways:
    2. `fastq_1` - Path to the first (or only) FastQ file (`.fastq`, `.fq`, `.fastq.gz`, `fq.gz`)
    3. `fastq_2` - Path to the second FastQ file for paired-end data (`.fastq`, `.fq`, `.fastq.gz`, `fq.gz`)
 
-> [!NOTE] >
+> [!NOTE]
 > All detailed running information is available in the [usage docs](./docs/usage.md).
 
 ### Minimal Run Command
@@ -67,24 +68,35 @@ Basic command:
 
 ```bash
 nextflow run phac-nml/vira \
-    -profile <PROFILE(s)> \
-    --fastq_pass </PATH/TO/fastq_pass> \
-    --platform <PLATFORM> \
-    --reference <REF.fa> \
-    --outdir <OUTDIR>
-    <OPTIONAL INPUTS>
+   -profile <PROFILE(s)> \
+   --fastq_pass </PATH/TO/fastq_pass> \
+   --platform <PLATFORM> \
+   --reference <REF.fa> \
+   --outdir <OUTDIR>
+   <OPTIONAL INPUTS>
 ```
 
-[Optional inputs](./docs/usage.md#all-parameters) could include:
+Where the parameters are as follows:
+
+- `-profile`: Profile to use to handle dependency installation and resources
+- `--fastq_pass`: Path to a directory containing fastq files
+- `--platform`: Sequencing platform used, either '_illumina_' or '_nanopore_'
+- `--reference`: FASTA formatted reference genome to map reads to
+- `--outdir`: The output directory for the final results
+
+Please see the [usage docs](./docs/usage.md#introduction) for more detailed information.
+
+### [Optional Inputs](./docs/usage.md#all-parameters):
 
 - [Amplicon scheme](./docs/usage.md#schemes-and-reference) instead of just a reference fasta file
 - [Metadata](./docs/usage.md#metadata)
-- Filtering options
+- Read and variant filtering options
 - GFF file for [SnpEff](./docs/usage.md#snpeff)
 - [Nextclade](./docs/usage.md#nextclade) dataset specification
-- Virus name for [virus specific options](./docs/usage.md#virus-specification)
+- Virus name input for [virus specific options](./docs/usage.md#virus-specification)
 - Skipping of specific processes
-- Minor variant calling
+- Nanopore minor variant calling
+  - Illumina to come
 - Output reporting options
 
 > [!TIP]

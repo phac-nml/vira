@@ -116,8 +116,13 @@ def yield_alt_base(cigar: str, alt: str) -> Generator:
     expanded_cigar = ''.join(int(n) * op for n, op in parts)
 
     alt_pos = 0
+    # To check for complex variants that have both an ins and a del such that REF and ALT are the same length
+    #  and the variant is run through handle_sub where they end up creating multiple snps and not an indel
+    not_indel = expanded_cigar.count('D') == expanded_cigar.count('I')
     for cigar_str in expanded_cigar:
-        if cigar_str == 'I':
+        if cigar_str in ['I', 'D'] and not_indel:
+            continue
+        elif cigar_str == 'I':
             alt_pos += 1
             yield '+'
         elif cigar_str == 'D':
@@ -223,7 +228,7 @@ def handle_sub(vcf_header: pysam.VariantHeader, record: pysam.VariantRecord) -> 
     for alt, vaf, cigar in zip(record.alts, vafs, record.info['CIGAR']):
         local_var_idx = 0
         for base in yield_alt_base(cigar, alt):
-            # Dels are at reference sites, indels not so up idx for dels
+            # Dels are at reference sites, ins not so up idx for dels
             #  Skip both as they don't have site specific ACGT counts
             #  and we aren't adding dels to the site VAFs
             if base == '-':
@@ -371,7 +376,7 @@ def init_parser() -> argparse.ArgumentParser:
     parser.add_argument('-m', '--minimum-indel-threshold', type=float, default=0.60,
             help="Indel variants with frequency less than the -m threshold will be skipped")
 
-    parser.add_argument('-q', '--min-quality', type=int, default=20,
+    parser.add_argument('-q', '--min-quality', type=int, default=0,
             help="Minimum quality to call a variant")
 
     parser.add_argument('-n', '--no-frameshifts', action="store_true",
@@ -457,7 +462,7 @@ def main() -> None:
                 continue
 
             # Discard low quality sites as recommended by freebayes
-            if base_record.qual < args.min_quality:
+            if base_record.qual <= args.min_quality:
                 continue
 
             # Discard fs indels if provided the arg

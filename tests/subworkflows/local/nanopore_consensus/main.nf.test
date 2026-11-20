@@ -9,6 +9,7 @@ nextflow_workflow {
         tag "subworkflow"
         tag "amplicon"
         tag "success"
+        tag "nanopore"
 
         when {
             params {
@@ -43,7 +44,7 @@ nextflow_workflow {
             assert path("$launchDir/results/bed/tiling_region.bed").readLines().size() == 1
             assert path("$launchDir/results/bed/tiling_region.bed").text.contains("MN908947.3\t54\t29768")
             //  Consensus Fasta files
-            assert path("$launchDir/results/consensus/sample2.consensus.fasta").md5 == "b0357754cbb862748f58bf03bf7bd2b4"
+            assert path("$launchDir/results/consensus/sample2.consensus.fasta").md5 == "4acd1629af62dc48fcae8d02ee3792e6"
         }
     }
 }
