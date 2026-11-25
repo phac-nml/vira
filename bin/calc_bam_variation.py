@@ -85,8 +85,9 @@ def create_ref_dict(ref_fasta: str) -> dict:
     """
     Purpose
     -------
-    Process reference fasta file with pysam to create a dictionary of indexs with their bases
-        It is 0-based
+    Process reference fasta file with pysam to create a dictionary of indexes with their bases
+        It is 0-based and keyed first by segment (Chrom) name so segmented genomes
+        represent all segments
 
     Parameters
     ----------
@@ -95,14 +96,17 @@ def create_ref_dict(ref_fasta: str) -> dict:
 
     Returns
     -------
-    dict{ Position: Base }
+    dict{ chrom: {Position: Base} }
     """
     ref_dict = {}
     ref_fasta = pysam.FastaFile(ref_fasta)
-    for idx, base in enumerate(ref_fasta.fetch(ref_fasta.references[0])):
-        # Allows lowercase and uppercase refs, fixes small bug
-        base = base.upper()
-        ref_dict[idx] = base
+    for chrom in ref_fasta.references:
+        chrom_dict = {}
+        for idx, base in enumerate(ref_fasta.fetch(chrom)):
+            # Allows lowercase and uppercase refs, fixes small bug
+            base = base.upper()
+            chrom_dict[idx] = base
+        ref_dict[chrom] = chrom_dict
 
     return ref_dict
 
@@ -219,7 +223,7 @@ def parse_variation_from_bam(bamfile: str, ref_dict: dict, base_q: int,
     bamfile : str
         Path to input BAM file
     ref_dict: dict
-        Contains: {Position: Base} for the reference genome
+        Contains: {chrom: {Position: Base}} for the reference genome
     base_q: int
         Minimum base quality to use read. Default: 10
     map_q: int
@@ -240,73 +244,92 @@ def parse_variation_from_bam(bamfile: str, ref_dict: dict, base_q: int,
     bamfile = pysam.AlignmentFile(bamfile, "rb" )
     variation_info = []
 
-    # Based on pysam docs for iterating over each base and Piranha's variation analysis
-    for pileupcolumn in bamfile.pileup(bamfile.references[0], min_base_quality=base_q, min_mapping_quality=map_q):
-        # Set vars to make access more concise and easier
-        num_reads = pileupcolumn.get_num_aligned()
-        zero_idx_pos = pileupcolumn.reference_pos
-        ref_base = ref_dict[zero_idx_pos]
-
-        # Exit as early as possible if it is NOT a variant that is > min_report_percent
-        #  Also stops 0 read locations from making it in
-        if num_reads < min_read_count:
+    # Iterate over every segment (Chrom) in the BAM so segmented genomes
+    #  are all included
+    for chrom in bamfile.references:
+        if chrom not in ref_dict:
             continue
+        chrom_ref_dict = ref_dict[chrom]
 
-        # For each read in the specific position, count total base found
-        data_list = pileupcolumn.get_query_sequences(add_indels=True)
-        case_insensitive_pos_counter = Counter(map(str.upper, data_list))
+        # Based on pysam docs for iterating over each base and Piranha's variation analysis
+        for pileupcolumn in bamfile.pileup(chrom, min_base_quality=base_q, min_mapping_quality=map_q):
+            # Set vars to make access more concise and easier
+            num_reads = pileupcolumn.get_num_aligned()
+            zero_idx_pos = pileupcolumn.reference_pos
+            if zero_idx_pos not in chrom_ref_dict:
+                continue
+            ref_base = chrom_ref_dict[zero_idx_pos]
 
-        # Positions before deletions have "-" in them with the deletion length along with the next positions
-        #  containing *s for the deletions. We are going to summarize deletions based on the *s so need
-        #  to skip the spots before while tracking the base in the current position
-        #  Ex. ['a-1n', 'a-1n', 'A-1N', 'A-1N']
-        if any([x for x in data_list if '-' in x]):
-            case_insensitive_pos_counter = Counter({k: c for k, c in case_insensitive_pos_counter.items() if '-' not in k})
-            base_list = [x[0].upper() for x in data_list if '-' in x]
-            case_insensitive_pos_counter = case_insensitive_pos_counter + Counter(base_list)
+            # Exit as early as possible if it is NOT a variant that is > min_report_percent
+            #  Also stops 0 read locations from making it in
+            if num_reads < min_read_count:
+                continue
 
-        # Can skip spots where we have the reference base as the most common and it isn't above the minimum report percent
-        most_common_base, read_count = case_insensitive_pos_counter.most_common(1)[0]
-        if (most_common_base == ref_base) and (read_count/num_reads * 100 > 100 - min_report_percent):
-            continue
-        # Ns as most common mean lots of missing data so skip
-        elif most_common_base == 'N':
-            continue
+            # For each read in the specific position, count total base found
+            data_list = [
+                base
+                for base in pileupcolumn.get_query_sequences(add_indels=True)
+                if base.upper() in {'A', 'T', 'C', 'G', '*'} or '+' in base or '-' in base
+            ]
+            case_insensitive_pos_counter = Counter(map(str.upper, data_list))
 
-        # Analyze insertions differently
-        # Insertions are hard as they can be quite variable and we want a summary for them
-        #  Ex. ['A+6AAAAAG', 'A+6AAAAAG', 'a+5aaagg', 'a+6aaaaag']
-        if (any([x for x in data_list if '+' in x])):
-            ins_list = [x for x in data_list if '+' in x]
-            case_insensitive_pos_counter['ins'] = len(ins_list)
+            if not case_insensitive_pos_counter:
+                continue
 
-            # Do something with it to summarize and adjust this later
-            ins_pattern = re.compile(r"\d+")
-            ins_len_counts = Counter((f"{ins_pattern.findall(x)[0]}bp" for x in ins_list))
-            ins_summary_str = ", ".join(f"{length}: {count}" for length, count in ins_len_counts.most_common())
+            # Positions before deletions have "-" in them with the deletion length along with the next positions
+            #  containing *s for the deletions. We are going to summarize deletions basd on the *s so need
+            #  to skip the spots before while tracking the base in the current position
+            #  Ex. ['a-1n', 'a-1n', 'A-1N', 'A-1N']
+            if any([x for x in data_list if '-' in x]):
+                case_insensitive_pos_counter = Counter({k: c for k, c in case_insensitive_pos_counter.items() if '-' not in k})
+                base_list = [x[0].upper() for x in data_list if '-' in x]
+                case_insensitive_pos_counter = case_insensitive_pos_counter + Counter(base_list)
 
-        # Add missing bases to the counter, change * to del, and make dict
-        pileup_dict = ensure_all_bases_dict_from_counter(case_insensitive_pos_counter)
+            # Can skip spots where we have the reference base as the most common and it isn't above the minimum report percent
+            most_common_base, read_count = case_insensitive_pos_counter.most_common(1)[0]
+            if (most_common_base == ref_base) and (read_count/num_reads * 100 > 100 - min_report_percent):
+                continue
+            # Ns as most common mean lots of missing data so skip
+            elif most_common_base == 'N':
+                continue
 
-        # Add values to dictionary
-        pileup_dict["position"] = zero_idx_pos + 1
-        pileup_dict["chrom"] = pileupcolumn.reference_name
-        pileup_dict["total_reads"] = num_reads
-        pileup_dict["percentage_nonref"] = calculate_non_ref_percent(pileup_dict, ref_base)
-        pileup_dict["ref_base"] = ref_base
-
-        # Type of mutation
-        if most_common_base == '*':
-            most_common_base = 'del'
-        pileup_dict["variant_type"] = determine_type(pileup_dict, most_common_base, variant_call_threshold, indel_call_threshold)
-
-        # If INS < variant_call_threshold we don't want to add insertion summary data
-        if calc_base_percent(pileup_dict, 'ins') < (100 - variant_call_threshold):
+            # Reset per-position so a previous position's insertion summary can't leak forward
             ins_summary_str = 'NA'
-        pileup_dict["distribution"] = ins_summary_str
 
-        # Add to report
-        variation_info.append(pileup_dict)
+            # Analyze insertions differently
+            # Insertions are hard as they can be quite variable and we want a summary for them
+            #  Ex. ['A+6AAAAAG', 'A+6AAAAAG', 'a+5aaagg', 'a+6aaaaag']
+            if (any([x for x in data_list if '+' in x])):
+                ins_list = [x for x in data_list if '+' in x]
+                case_insensitive_pos_counter['ins'] = len(ins_list)
+
+                # Do something with it to summarize and adjust this later
+                ins_pattern = re.compile(r"\d+")
+                ins_len_counts = Counter((f"{ins_pattern.findall(x)[0]}bp" for x in ins_list))
+                ins_summary_str = ", ".join(f"{length}: {count}" for length, count in ins_len_counts.most_common())
+
+            # Add missing bases to the counter, change * to del, and make dict
+            pileup_dict = ensure_all_bases_dict_from_counter(case_insensitive_pos_counter)
+
+            # Add values to dictionary
+            pileup_dict["position"] = zero_idx_pos + 1
+            pileup_dict["chrom"] = pileupcolumn.reference_name
+            pileup_dict["total_reads"] = num_reads
+            pileup_dict["percentage_nonref"] = calculate_non_ref_percent(pileup_dict, ref_base)
+            pileup_dict["ref_base"] = ref_base
+
+            # Type of mutation
+            if most_common_base == '*':
+                most_common_base = 'del'
+            pileup_dict["variant_type"] = determine_type(pileup_dict, most_common_base, variant_call_threshold, indel_call_threshold)
+
+            # If INS < variant_call_threshold we don't want to add insertion summary data
+            if calc_base_percent(pileup_dict, 'ins') < (100 - variant_call_threshold):
+                ins_summary_str = 'NA'
+            pileup_dict["distribution"] = ins_summary_str
+
+            # Add to report
+            variation_info.append(pileup_dict)
 
     return variation_info
 

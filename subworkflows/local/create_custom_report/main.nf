@@ -47,6 +47,7 @@ workflow WF_CREATE_CUSTOM_REPORT {
     main:
     ch_summary_report_template = channel.fromPath("$projectDir/assets/rmarkdown-reports/reportDashboard.Rmd")
     ch_sample_subpage = channel.value(file("$projectDir/assets/rmarkdown-reports/sampleSubpage.Rmd"))
+    ch_sample_child_subpage = channel.value(file("$projectDir/assets/rmarkdown-reports/childSampleSubpage.Rmd"))
     ch_amplicon_subpage = channel.fromPath("$projectDir/assets/rmarkdown-reports/sampleAmplicons.Rmd")
     ch_negative_subpage = channel.fromPath("$projectDir/assets/rmarkdown-reports/sampleNegative.Rmd")
 
@@ -125,45 +126,46 @@ workflow WF_CREATE_CUSTOM_REPORT {
     )
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-    // Final Custom Reports (only for non-segmented)
+    // Final Custom Reports
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-    if ( !segmented ) {
 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-        // Sample Reports
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-        CREATE_SAMPLE_REPORT(
-            ch_sample_qc,
-            BEDTOOLS_COVERAGE_GENOME_BED.out.cov_bed
-                .collect{ _meta, bed -> bed },
-            CREATE_READ_VARIATION_CSV.out.csv
-                .collect{ _meta, csv -> csv },
-            CREATE_VARIANT_TSV.out.tsv
-                .collect{ _meta, tsv -> tsv },
-            PYSAMSTATS.out.tsv
-                .collect{ _meta, tsv -> tsv },
-            ch_sample_subpage
-        )
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+    // Sample Reports
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+    CREATE_SAMPLE_REPORT(
+        ch_sample_qc,
+        BEDTOOLS_COVERAGE_GENOME_BED.out.cov_bed
+            .collect{ _meta, bed -> bed },
+        CREATE_READ_VARIATION_CSV.out.csv
+            .collect{ _meta, csv -> csv },
+        CREATE_VARIANT_TSV.out.tsv
+            .collect{ _meta, tsv -> tsv },
+        PYSAMSTATS.out.tsv
+            .collect{ _meta, tsv -> tsv },
+        ch_sample_subpage,
+        ch_sample_child_subpage,
+        segmented
+    )
 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-        // Final Report
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-        CREATE_ALL_SAMPLE_SUMMARY_REPORT(
-            ch_summary_report_template,
-            ch_amplicon_subpage,
-            ch_negative_subpage,
-            BEDTOOLS_COVERAGE_GENOME_BED.out.cov_bed
-                .collect{ _meta, bed -> bed },
-            ch_amplicon_coverage
-                .ifEmpty([]),
-            ch_amplicon_completeness
-                .ifEmpty([]),
-            ch_final_qc,
-            CUSTOM_DUMPSOFTWAREVERSIONS.out.yml,
-            workflow.manifest.version,
-            workflow.revision ? workflow.revision : 'main',
-            nextflow.version,
-            params.neg_ctrl_substrings
-        )
-    }
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+    // Final Report
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+    CREATE_ALL_SAMPLE_SUMMARY_REPORT(
+        ch_summary_report_template,
+        ch_amplicon_subpage,
+        ch_negative_subpage,
+        BEDTOOLS_COVERAGE_GENOME_BED.out.cov_bed
+            .collect{ _meta, bed -> bed },
+        ch_amplicon_coverage
+            .ifEmpty([]),
+        ch_amplicon_completeness
+            .ifEmpty([]),
+        ch_final_qc,
+        CUSTOM_DUMPSOFTWAREVERSIONS.out.yml,
+        workflow.manifest.version,
+        workflow.revision ? workflow.revision : 'main',
+        nextflow.version,
+        params.neg_ctrl_substrings,
+        segmented
+    )
 }

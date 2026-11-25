@@ -201,12 +201,14 @@ process CREATE_ALL_SAMPLE_SUMMARY_REPORT {
     val revision
     val nf_version
     val neg_ctrl_substrings
+    val segmented
 
     output:
     path "VIRA-Report.html"
 
     script:
     def amp_arg = merged_amplicon_depth_csv ? "run_amplicons = TRUE" : "run_amplicons = FALSE"
+    def segmented_arg = segmented.toString().toBoolean() ? "TRUE" : "FALSE"
     """
     # Setup sample files to be found by RMD
     mkdir -p base_coverages
@@ -224,7 +226,8 @@ process CREATE_ALL_SAMPLE_SUMMARY_REPORT {
                 version = '$pipeline_version',
                 revision = '$revision',
                 nf_version = '$nf_version',
-                neg_ctrl_substrings = '$neg_ctrl_substrings'
+                neg_ctrl_substrings = '$neg_ctrl_substrings',
+                segmented = $segmented_arg
             )
         )"
     """
@@ -248,6 +251,8 @@ process CREATE_SAMPLE_REPORT {
     path variant_tsv
     path base_qual
     path rmd_sample_subpage
+    path rmd_sample_segment_subpage
+    val segmented
 
     output:
     tuple val(meta), path ("*.html"), emit: sample_report
@@ -255,6 +260,7 @@ process CREATE_SAMPLE_REPORT {
     script:
     def min_af = params.platform == "nanopore" ? "$params.min_allele_freq" : "$params.max_ambiguity_threshold"
     def output_name = "${meta.id.replaceAll(/[^A-Za-z0-9.-]/, '_')}.html"
+    def segmented_arg = segmented.toString().toBoolean() ? "TRUE" : "FALSE"
     """
     # Setup sample files to be found by RMD
     mkdir -p base_coverages
@@ -276,7 +282,9 @@ process CREATE_SAMPLE_REPORT {
             params=list(
                 min_allele_freq = $min_af,
                 sample_df = '$qc_csv',
-                platform = '${params.platform}'
+                platform = '${params.platform}',
+                segmented = $segmented_arg,
+                sample_name = '$meta.id'
             )
         )"
     """

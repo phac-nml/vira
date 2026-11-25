@@ -220,7 +220,7 @@ workflow WF_NANOPORE_CONSENSUS {
         ch_versions = ch_versions.mix(BCFTOOLS_CONSENSUS.out.versions)
 
         // Remove tabix index from vcf as it is not needed
-        ch_vcf = ARTIC_VCF_FILTER.out.pass_vcf
+        ch_vcf = BCFTOOLS_NORM.out.vcf
             .map { meta, vcf, _tbi -> [ meta, vcf ] }
     } else {
         ARTIC_MINION(
