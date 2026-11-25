@@ -1,0 +1,310 @@
+```{r, include=FALSE}
+# Current segment reference name
+current_reference <- if ("reference" %in% names(sample_df)) {
+  as.character(sample_df$reference[[1]])
+} else {
+  NA_character_
+}
+```
+
+Row
+------------------------------
+
+```{r, results='asis', echo=FALSE, error=TRUE}
+if (isTRUE(segmented) && "reference" %in% names(sample_df)) {
+  catHeader("Segment Reference Name", level = 3)
+  box_name <- current_reference
+} else {
+  catHeader("Sample Name", level = 3)
+  box_name <- sample
+}
+
+valueBox(box_name, icon = "")
+```
+
+```{r, results='asis', echo=FALSE, error=TRUE}
+if (isTRUE(segmented) && "reference" %in% names(sample_df)) {
+  catHeader("Segment Genome Completeness", level = 3)
+} else {
+  catHeader("Genome Completeness", level = 3)
+}
+completeness <- sample_df$genome_completeness[1]
+sec_color <- get_genome_completeness_color(completeness)
+valueBox(
+  completeness,
+  icon = "",
+  color = sec_color
+)
+```
+
+
+```{r, results='asis', echo=FALSE, error=TRUE}
+if (isTRUE(segmented) && "reference" %in% names(sample_df)) {
+  catHeader("Segment Status", level = 3)
+} else {
+  catHeader("Sample Status", level = 3)
+}
+# Based on run status, set colour and icon
+sample_status <- sample_df$qc_pass[1]
+if ( sample_status == 'PASS' ) {
+    sec_icon = ""
+    sec_color = "success"
+} else if ( grepl('PARTIAL_GENOME', sample_status) ) {
+    sec_icon = ""
+    sec_color = "orange"
+} else if ( grepl('INCOMPLETE_GENOME', sample_status) ) {
+    sec_icon = ""
+    sec_color = "danger"
+} else {
+    sec_icon = ""
+    sec_color = "warning"
+}
+
+valueBox(
+  sample_status,
+  icon = sec_icon,
+  color = sec_color
+)
+```
+
+## Row {data-height=170}
+
+### **Table I:** Expanded Sample Summary Table
+```{r, echo=FALSE, error=TRUE}
+create_sample_summary_table(sample_df, compact = TRUE)
+```
+
+## Row
+
+### {-}
+```{r, echo=FALSE, error=TRUE}
+# Create table from bam file csv showing variants and subvariants
+var_f <- paste0("./variation_csvs/", sample, "_variation.csv")
+if (file.exists(var_f)) {
+  variants <- read.table(var_f, header = TRUE, sep = ",")
+} else {
+  variants <- data.frame(matrix(ncol = 12, nrow = 1))
+  colv <- c("position", "ref_base", "percentage_nonref", "variant_type", "total_reads", "A", "T", "C", "G", "del", "ins", "distribution")
+  colnames(variants) <- colv
+}
+# Restrict to the current segment when segmented
+if (!is.na(current_reference) && "chrom" %in% colnames(variants)) {
+  variants <- variants[as.character(variants$chrom) == current_reference, ]
+}
+# Text info for hover
+if (nrow(variants) > 0) {
+  text_info <- paste(
+    'Position: ', variants[['position']], '<br>',
+    'Reference: ', variants[['ref_base']], '<br>',
+    'Total Reads: ', variants[['total_reads']], '<br>',
+    '  A: ', variants[['A']], '<br>',
+    '  T: ', variants[['T']], '<br>',
+    '  G: ', variants[['G']], '<br>',
+    '  C: ', variants[['C']], '<br>',
+    '  Del:', variants[['del']], '<br>',
+    '  Ins:', variants[['ins']], '<br>',
+    'Insertion Distribution: ', variants[['distribution']], '<br>',
+    sep = ''
+  )
+} else {
+  text_info <- character(0)
+}
+variants$text_info <- text_info
+
+# Plot variation table
+#  Also customdata instead of text due to https://github.com/plotly/plotly.R/issues/1859
+p <- plot_ly(variants) %>%
+  add_trace(x = variants[['position']], y = variants[['percentage_nonref']],
+      type = 'scatter', mode = 'markers',
+      color = ~factor(variant_type, levels = c("A SNP", "T SNP", "G SNP", "C SNP", "Ref", "Mixed", "Deletion", "Insertion")),
+      marker = list(sizemode = 'diameter', size = 15.0, opacity = 0.7),
+      customdata = ~text_info,
+      hovertemplate = paste(
+        '<b>Percentage</b>: %{y:.2f}<br>',
+        '%{customdata}<extra></extra>',
+        sep=''
+      )
+  )
+
+# Add final layout to plot
+p <- p %>%
+  layout(
+    xaxis = list (title = "Position", tickformat = ".0f"),
+    yaxis = list (title = "Percent Non Reference Base", tickformat = '2.%'),
+    shapes = list(hline(min_allele_freq * 100))
+  )
+
+p
+```
+
+> **Figure 1.** Variant Read Counts. The sample pileup was analyzed to find positions in the genome where
+> the alternate allele percentage was greater-than or equal to 15%.
+
+## Row
+
+### {-}
+```{r, echo=FALSE, error=TRUE}
+# Create table of called variants using the vcf file turned into a tsv
+var_f <- paste0("./variant_tsvs/", sample, ".vcf.tsv")
+if (file.exists(var_f)) {
+  variants <- read.table(var_f, header = TRUE, sep = "\t", check.names = FALSE, colClasses = "character")
+  # Restrict to the current segment when segmented
+  if (!is.na(current_reference) && "Chrom" %in% colnames(variants)) {
+    variants <- variants[as.character(variants$Chrom) == current_reference, ]
+  }
+  ddt <- variants %>%
+    DT::datatable(
+      rownames = FALSE,
+      caption = htmltools::tags$caption(
+        style = 'caption-side: top',
+        htmltools::strong('Table II:'), ' Consensus Called Variants. VCF-based summary table of the variants found in the final consensus sequence.'
+      ),
+      options = list(
+        pageLength = 10,
+        scrollX = FALSE,
+        scrollY = ""
+    )) %>%
+    formatRound(columns = c('Qual'), digits = 2) %>%
+    formatRound(columns = c('Alt Allele Fraction'), digits = 4) %>%
+    # Bars to show at a glance
+    formatStyle(
+      'Alt Allele Fraction',
+      background = styleColorBar(range(0,1), 'lightblue', angle = -90),
+      backgroundSize = '88% 88%',
+      backgroundRepeat = 'no-repeat',
+      backgroundPosition = 'left'
+    )
+} else {
+  # Create an empty table if file doesn't exist
+  variants <- data.frame(matrix(ncol = 7, nrow = 0))
+  colv <- c("Chrom", "Pos", "Ref", "Alt", "Qual", "Depth", "Alt Allele Fraction")
+  colnames(variants) <- colv
+  ddt <- variants %>%
+    DT::datatable(rownames = FALSE)
+}
+
+ddt
+```
+
+Row
+------------------------------
+### {-}
+```{r, echo=FALSE, error=TRUE}
+# Getting all the depth TSV files
+cov_f <- paste0("./base_coverages/", sample, ".per_base_coverage.bed")
+coverage <- read.table(cov_f, header = TRUE, sep = "\t")
+# Restrict to the current segment when segmented
+if (!is.na(current_reference) && "reference_name" %in% colnames(coverage)) {
+  coverage <- coverage[as.character(coverage$reference_name) == current_reference, ]
+}
+coverage <- select(coverage, position, depth)
+# Set depths of 0 to 1 to allow continuous visualization with log plot
+coverage$depth[coverage$depth == 0] <- 1
+
+# Create the background shapes needed
+background_shapes <- list(
+  list(
+    type = "rect",
+    fillcolor = "red",
+    opacity = 0.2,
+    x0 = min(coverage$position),
+    x1 = max(coverage$position),
+    y0 = 1,
+    y1 = 10
+  ),
+  list(
+    type = "rect",
+    fillcolor = "yellow",
+    opacity = 0.2,
+    x0 = min(coverage$position),
+    x1 = max(coverage$position),
+    y0 = 10,
+    y1 = 30
+  ),
+  list(
+    type = "rect",
+    fillcolor = "green",
+    opacity = 0.2,
+    x0 = min(coverage$position),
+    x1 = max(coverage$position),
+    y0 = 30,
+    y1 = max(coverage$depth)
+  )
+)
+# Create plot
+depthp <- plot_ly(x = ~coverage$position, y = ~coverage$depth, type = "scatter", mode = "lines", line = list(color = "black")) %>%
+  layout(
+    yaxis = list(
+    type = "log",
+    title = "Sequencing Depth (Log Scale)",
+    tickvals = c(10, 30, 100, 1000),
+    ticktext = c(10, 30, 100, 1000)
+  ),
+  xaxis = list(
+    title = "Genomic Position (nt)",
+    tickformat = ".0f"
+  ),
+  shapes = background_shapes
+  )
+
+depthp
+```
+> **Figure 2.** Positional genomic depth. The Y-axis is log-scaled so positions with no genomic depth have been set to 1 to allow a continuous visualization. Zones have been marked using a colour scheme where: 0-10 is red corresponding to masked sites, 10-30 is yellow corresponding to sites where there is a basecall but limited depth, and 30+ is green for positions with acceptable or better depth.
+
+## Row
+
+### {-}
+```{r, echo=FALSE, error=TRUE}
+quality <- read.table(paste0("./base_qualities/", sample, ".baseq.stats.tsv"), sep = "\t", header = TRUE)
+# Restrict to the current segment when segmented
+if (!is.na(current_reference) && "chrom" %in% colnames(quality)) {
+  quality <- quality[as.character(quality$chrom) == current_reference, ]
+}
+custom_tickvals <- c(0,10,20,30)
+
+# Create the background shapes needed
+background_shapes <- list(
+  list(
+    type = "rect",
+    fillcolor = "red",
+    opacity = 0.2,
+    x0 = min(quality$pos),
+    x1 = max(quality$pos),
+    y0 = 0,
+    y1 = 20
+  ),
+  list(
+    type = "rect",
+    fillcolor = "yellow",
+    opacity = 0.2,
+    x0 = min(quality$pos),
+    x1 = max(quality$pos),
+    y0 = 20,
+    y1 = 30
+  ),
+  list(
+    type = "rect",
+    fillcolor = "green",
+    opacity = 0.2,
+    x0 = min(quality$pos),
+    x1 = max(quality$pos),
+    y0 = 30,
+    y1 = max(quality$rms_baseq)
+  )
+)
+# Plot
+qualityp <- plot_ly(quality ,x = ~quality$'pos', y = ~quality$'rms_baseq', type = "scatter", mode = "lines", line = list(color = "black")) %>%
+  layout(
+    yaxis = list(
+      tickvals = custom_tickvals,
+      ticktext = c("0", "10", "20", "30"),
+      title = "RMS Base Quality Score"),
+    xaxis = list(
+      title = "Genomic Position (nt)",
+      tickformat = ".0f"
+    ),
+    shapes = background_shapes
+  )
+qualityp
+```
+> **Figure 3.** Average root-mean-square read base quality score per genomic position

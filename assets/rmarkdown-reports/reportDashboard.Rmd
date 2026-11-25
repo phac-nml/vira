@@ -3,9 +3,15 @@ title: "VIRA Sequencing Run Report"
 output:
   flexdashboard::flex_dashboard:
     self_contained: true
+    self_contained: true
     orientation: rows
     vertical_layout: scroll
     mathjax: NULL
+    theme:
+      version: 4
+knitr:
+  opts_chunk:
+    fig_embed: false
     theme:
       version: 4
 knitr:
@@ -18,6 +24,7 @@ params:
     revision: ""
     nf_version: ""
     neg_ctrl_substrings: ""
+    segmented: FALSE
 ---
 
 <!-- Style updates mostly to make sure the caption boxes are all matching -->
@@ -32,10 +39,18 @@ params:
 .value-box .value {
     color: white;
 }
+table.dataTable tr.dtrg-group td,
+table.dataTable tr.dtrg-start td {
+  background-color: #e9eef5 !important;
+  font-weight: bold;
+  color: #243b53;
+  padding: 10px 12px !important;
+  border-top: 1px solid #cbd5e1;
+}
 </style>
 
 ```{r, setup, include=FALSE}
-# Load in libraries
+# >>> LOAD LIBRARIES <<< #
 library(flexdashboard)
 library(plotly)
 library(dplyr)
@@ -123,6 +138,19 @@ add_pass_value_int <- function(df, column) {
   # Return results
   return(results)
 }
+
+# Function: Section Headers
+catHeader <- function(text = "", level = 3) {
+  cat(
+    paste0(
+      "\n\n",
+      paste(rep("#", level), collapse = ""),
+      " ",
+      text,
+      "\n\n"
+    )
+  )
+}
 ```
 
 Run Summary
@@ -133,19 +161,43 @@ Row
 
 ### Total Samples
 ```{r, samples_box, echo=FALSE, error=TRUE}
-total_samples <- nrow(summary_df)
+total_samples <- length(unique(summary_df[["sample"]]))
 valueBox(total_samples, icon = "")
 ```
 
 ### Total Passing Samples
 ```{r, passing_box, echo=FALSE, error=TRUE}
-passing_samples <- sum(summary_df[["qc_pass"]] == "PASS", na.rm = FALSE)
+if (isTRUE(params$segmented) && "reference" %in% colnames(summary_df)) {
+  # A segmented sample is only fully passing if all of its segments pass
+  sample_pass_status <- summary_df %>%
+    group_by(sample) %>%
+    summarise(fully_pass = all(qc_pass == "PASS"), .groups = "drop")
+  passing_samples <- sum(sample_pass_status$fully_pass, na.rm = FALSE)
+} else {
+  passing_samples <- sum(summary_df[["qc_pass"]] == "PASS", na.rm = FALSE)
+}
 valueBox(passing_samples, icon = "")
+```
+
+```{r, results='asis', echo=FALSE, eval=isTRUE(params$segmented) && "reference" %in% colnames(summary_df)}
+catHeader("Number of Segments", level = 3)
+num_segments <- length(unique(as.character(summary_df$reference)))
+valueBox(num_segments, icon = "")
+```
+
+### Run Name
+```{r, run_name_box, echo=FALSE, error=TRUE}
+if ("run_name" %in% colnames(summary_df)) {
+  run_name <- summary_df[1, 'run_name']
+} else {
+  run_name <- "NA"
+}
+valueBox(run_name, icon = "")
 ```
 
 ### Negative Control Status
 ```{r, controls_status_box, echo=FALSE, error=TRUE}
-# Based on run satus, set colour and icon
+# Based on run status, set colour and icon
 run_status = summary_df[1, 'run_status']
 if ( run_status == 'PASS' ) {
     sec_icon = ""
@@ -173,30 +225,90 @@ Row {dataset-height=250}
 
 ### {-}
 ```{r, plot_completeness, echo=FALSE, error=TRUE}
-# All sample genome completeness plot
-df <- select(summary_df, sample, genome_completeness)
+# Create a genome completeness plot, optionally selecting a segment.
+df <- select(summary_df, sample, any_of("reference"), genome_completeness)
 
-# Creat plot, adding in titles and the PASS/WARN hlines (may need to figure out how to label these)
-p <- plot_ly(
-  df,
-  x = ~sample,
-  y = ~genome_completeness,
-  type = 'bar',
-  color = ~genome_completeness,
-  colors = "RdYlGn",
-  name=""
-  ) %>%
-  colorbar(
-    limits = c(0, 1),
-    title = "Completeness",
-    tickformat = ".0%"
-  ) %>%
-  layout(
-    title = "Sample Genome Completeness",
-    xaxis = list(title = "Sample Name"),
-    yaxis = list (title = "Genome Completeness", tickformat = '.2%'),
-    shapes = list(hline(0.9), hline(0.5))
+if (isTRUE(params$segmented) && "reference" %in% colnames(df)) {
+  segment_data <- split(df, df$reference)
+  segment_names <- names(segment_data)
+  p <- plot_ly()
+
+  # Custom red-yellow-green colorscale (green = high completeness, red = low)
+  completeness_colorscale <- list(
+    list(0, "rgb(165,0,38)"),
+    list(0.5, "rgb(255,255,191)"),
+    list(1, "rgb(0,104,55)")
   )
+
+  for (i in seq_along(segment_data)) {
+    p <- p %>%
+      add_bars(
+        data = segment_data[[i]],
+        x = ~sample,
+        y = ~genome_completeness,
+        marker = list(
+          color = ~genome_completeness,
+          colorscale = completeness_colorscale,
+          cmin = 0,
+          cmax = 1,
+          showscale = TRUE,
+          colorbar = list(tickformat = ".0%", title = "")
+        ),
+        name = segment_names[[i]],
+        visible = i == 1
+      )
+  }
+
+  segment_buttons <- lapply(seq_along(segment_names), function(i) {
+    visible <- rep(FALSE, length(segment_names))
+    visible[[i]] <- TRUE
+
+    list(
+      label = segment_names[[i]],
+      method = "update",
+      args = list(
+        list(visible = visible),
+        list(title = segment_names[[i]])
+      )
+    )
+  })
+
+  p <- p %>%
+    layout(
+      title = segment_names[[1]],
+      xaxis = list(title = "Sample Name"),
+      yaxis = list(title = "Genome Completeness", tickformat = '.2%'),
+      shapes = list(hline(0.9), hline(0.5)),
+      updatemenus = list(list(
+        type = "dropdown",
+        direction = "down",
+        x = 0,
+        xanchor = "left",
+        y = 1.12,
+        yanchor = "top",
+        pad = list(r = 0, t = 0),
+        buttons = segment_buttons
+      )),
+      showlegend = FALSE
+    )
+} else {
+  p <- plot_ly(
+    df,
+    x = ~sample,
+    y = ~genome_completeness,
+    type = 'bar',
+    color = ~genome_completeness,
+    colors = "RdYlGn",
+    name = ""
+  ) %>%
+    layout(
+      title = "Sample Genome Completeness",
+      xaxis = list(title = "Sample Name"),
+      yaxis = list(title = "Genome Completeness", tickformat = '.2%'),
+      shapes = list(hline(0.9), hline(0.5))
+    )
+}
+
 p
 ```
 
@@ -210,7 +322,7 @@ Row
 ```{r, data_table, echo=FALSE, error=TRUE}
 # Create an interactive table of all samples with the different qc statuses highlighted
 df <- summary_df %>%
-  select(any_of(c('sample', 'qc_pass', 'lineage', 'mean_sequencing_depth', 'median_sequencing_depth',
+  select(any_of(c('sample', 'reference', 'qc_pass', 'lineage', 'mean_sequencing_depth', 'median_sequencing_depth',
                   'num_aligned_reads', 'total_variants', 'num_snps', 'num_iupacs',
                   'num_deletions', 'num_deletion_sites', 'num_insertions',
                   'num_insertion_sites', 'genome_completeness')))
@@ -231,6 +343,11 @@ df <- df %>%
     "Genome Completeness" = genome_completeness,
     "QC Pass" = qc_pass
   )
+
+if ("reference" %in% colnames(df)) {
+  df <- df %>%
+    rename("Segment Reference Name" = reference)
+}
 
 # Separate as its not an ONT output
 if ("num_iupacs" %in% colnames(df)) {
@@ -254,39 +371,53 @@ df$completeness_int_color <- add_pass_value_int(df, 'QC Pass')
 table_number <- table_number + 1
 table_label <- paste0("Table ", as.roman(table_number))
 
+# Group segmented-virus rows by sample while retaining the segment reference.
+table_options <- list(
+  scrollX = FALSE,
+  pageLength = 10,
+  scrollY = "",
+  columnDefs = list(
+    list(className = 'dt-left', targets = "_all"),
+    list(visible = FALSE, targets = 'completeness_int_color')
+  )
+)
+if (isTRUE(params$segmented) && "reference" %in% colnames(summary_df)) {
+  table_options$rowGroup <- list(dataSrc = 0)
+  table_options$orderFixed <- list(pre = list(list(0, "asc")))
+  table_options$order <- list(list(1, "asc"))
+  table_options$columnDefs <- append(
+    table_options$columnDefs,
+    list(list(visible = FALSE, targets = 0))
+  )
+}
+
 # Using datatable, removing the index row and adding in highlights for the status
 summary_dt <- df %>%
   DT::datatable(
     rownames = FALSE,
+    extensions = "RowGroup",
     caption = htmltools::tags$caption(
       style = 'caption-side: top',
       htmltools::strong(table_label), ' All Samples Data Summary'
     ),
-    options = list(
-      pageLength = 10,
-      scrollX = FALSE,
-      scrollY = "",
-      columnDefs = list(
-        list(className = 'dt-left', targets = "_all"),
-        list(visible=FALSE, targets='completeness_int_color')
-    ))) %>%
-    formatStyle('completeness_int_color',
-      target = 'row',
-      backgroundColor = styleEqual(c(1, 2, 3, 0),
-      c('', 'orange', '#FF6666', '#FFFF66')
-    )) %>%
-    formatStyle('Genome Completeness',
-      background = styleColorBar(range(0,1), 'lightblue', angle = -90),
-      backgroundSize = '88% 88%',
-      backgroundRepeat = 'no-repeat',
-      backgroundPosition = 'left'
+    options = table_options
+  ) %>%
+  formatStyle('completeness_int_color',
+    target = 'row',
+    backgroundColor = styleEqual(c(1, 2, 3, 0),
+    c('', 'orange', '#FFFF66', '#FF6666')
+  )) %>%
+  formatStyle('Genome Completeness',
+    background = styleColorBar(range(0,1), 'lightblue', angle = -90),
+    backgroundSize = '88% 88%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'left'
   )
 
 summary_dt
 ```
 
-Row
-------------------------------
+## Row
 
 ### {-}
 ```{r median-depth-plot, error=TRUE, echo=FALSE}
@@ -309,7 +440,7 @@ long_df <- rbindlist(
 #  Ymin and Ymax for drawing the stdev region
 #  Ymin should not be below 0
 summary_depth_df <- long_df %>%
-  group_by(position) %>%
+  group_by(reference_name, position) %>%
   summarise(
     mean = mean(depth, na.rm = TRUE),
     sd = sd(depth, na.rm = TRUE),
@@ -319,21 +450,114 @@ summary_depth_df <- long_df %>%
     .groups = "drop"
   )
 
-# Get maximum genome_length for x-axis
-genome_length <- max(summary_depth_df$position, na.rm = TRUE)
+if (isTRUE(params$segmented)) {
+  # Single plot with a dropdown to toggle between segments, resetting the
+  # x-axis range to each segment's own genome length when switched.
+  depth_segment_data <- split(summary_depth_df, summary_depth_df$reference_name)
+  depth_segment_names <- names(depth_segment_data)
+  p <- plot_ly()
 
-# Plot figure
-plot_ly(summary_depth_df, x = ~position, text = ~paste0(
-  "<b>Position: </b>", position,
-  "<br><b>Mean ± SD: </b>", round(mean, 2), " ± ", round(sd, 2)
-), hoverinfo = "text") %>%
-  add_ribbons(ymin = ~ymin, ymax = ~ymax, fillcolor = "rgba(0, 0, 255, 0.25)", line = list(color = "transparent"), name = "Mean ± SD", hoverinfo = "skip") %>%
-  add_lines(y =~median, line = list(color = "blue"), name = "Median read depth") %>%
-  layout(title = list(text= "Median genomic read depth with deviation", x = 0.5),
-    xaxis = list(title = "Genome Position", range = c(0, genome_length), nticks = 10, showgrid = FALSE, gridcolor = "#dadce0", griddash = "dot", tickformat = ".0f"),
-    yaxis = list(title = "Median read depth", rangemode = "tozero", showgrid = FALSE),
-    showlegend = FALSE
+  for (i in seq_along(depth_segment_data)) {
+    segment_df <- depth_segment_data[[i]]
+    p <- p %>%
+      add_ribbons(
+        data = segment_df,
+        x = ~position,
+        ymin = ~ymin,
+        ymax = ~ymax,
+        fillcolor = "rgba(0, 0, 255, 0.25)",
+        line = list(color = "transparent"),
+        name = "Mean ± SD",
+        hoverinfo = "skip",
+        visible = i == 1
+      ) %>%
+      add_lines(
+        data = segment_df,
+        x = ~position,
+        y = ~median,
+        line = list(color = "blue"),
+        text = ~paste0(
+          "<b>Position: </b>", position,
+          "<br><b>Mean ± SD: </b>", round(mean, 2), " ± ", round(sd, 2)
+        ),
+        hoverinfo = "text",
+        name = "Median read depth",
+        visible = i == 1
+      )
+  }
+
+  # Each segment contributes 2 traces (ribbon + line), so toggle both together.
+  depth_segment_lengths <- vapply(
+    depth_segment_data,
+    function(segment_df) max(segment_df$position, na.rm = TRUE),
+    numeric(1)
   )
+
+  depth_segment_buttons <- lapply(seq_along(depth_segment_names), function(i) {
+    visible <- rep(FALSE, length(depth_segment_names) * 2)
+    visible[c(2 * i - 1, 2 * i)] <- TRUE
+
+    list(
+      label = depth_segment_names[[i]],
+      method = "update",
+      args = list(
+        list(visible = visible),
+        list(
+          title = list(text = depth_segment_names[[i]], x = 0.5),
+          xaxis = list(title = "Genome Position", range = c(0, depth_segment_lengths[[i]]), nticks = 10, showgrid = FALSE, gridcolor = "#dadce0", griddash = "dot", tickformat = ".0f")
+        )
+      )
+    )
+  })
+
+  p %>%
+    layout(
+      title = list(text = depth_segment_names[[1]], x = 0.5),
+      xaxis = list(title = "Genome Position", range = c(0, depth_segment_lengths[[1]]), nticks = 10, showgrid = FALSE, gridcolor = "#dadce0", griddash = "dot", tickformat = ".0f"),
+      yaxis = list(title = "Median read depth", rangemode = "tozero", showgrid = FALSE),
+      showlegend = FALSE,
+      updatemenus = list(list(
+        type = "dropdown",
+        direction = "down",
+        x = 0,
+        xanchor = "left",
+        y = 1.12,
+        yanchor = "top",
+        pad = list(r = 0, t = 0),
+        buttons = depth_segment_buttons
+      ))
+    )
+} else {
+  # Create one plot per segment, preserving each segment's position range.
+  segment_plots <- lapply(
+    split(summary_depth_df, summary_depth_df$reference_name),
+    function(segment_df) {
+      segment_name <- unique(segment_df$reference_name)
+      genome_length <- max(segment_df$position, na.rm = TRUE)
+
+      plot_ly(segment_df, x = ~position, text = ~paste0(
+        "<b>Position: </b>", position,
+        "<br><b>Mean ± SD: </b>", round(mean, 2), " ± ", round(sd, 2)
+      ), hoverinfo = "text") %>%
+        add_ribbons(ymin = ~ymin, ymax = ~ymax, fillcolor = "rgba(0, 0, 255, 0.25)", line = list(color = "transparent"), name = "Mean ± SD", hoverinfo = "skip") %>%
+        add_lines(y = ~median, line = list(color = "blue"), name = "Median read depth") %>%
+        layout(title = list(text = segment_name, x = 0.5),
+          xaxis = list(title = "Genome Position", range = c(0, genome_length), nticks = 10, showgrid = FALSE, gridcolor = "#dadce0", griddash = "dot", tickformat = ".0f"),
+          yaxis = list(title = "Median read depth", rangemode = "tozero", showgrid = FALSE),
+          showlegend = FALSE
+        )
+    }
+  )
+
+  subplot(
+    segment_plots,
+    nrows = length(segment_plots),
+    shareX = FALSE,
+    shareY = FALSE,
+    titleX = TRUE,
+    titleY = TRUE
+  )
+}
 ```
 
 
